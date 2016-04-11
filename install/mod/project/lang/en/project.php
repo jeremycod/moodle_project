@@ -106,3 +106,8 @@ $string['highthresholdexplain'] = 'The percentage that determines when a user ex
 $string['starttime_error']= 'Start date must be greater than today\'s date.';
 $string['endlessthanstart_error'] = 'End date must be greater than start date.';
 $string['maxprogress_error'] = 'Progress cannot be greater than 100%.';
+
+
+$string['alert-low'] = '<br/>{$a}, We have detected you are a low participator.<br />
+Please try to elaborate more on your thoughts and ideas, generating larger more full messages.';
+$string['alert-high'] = '<br/>{$a}, We have detected you are quite and active chatter. As an additional challenge, work on your leadership skills by including those who are less active.<br />';

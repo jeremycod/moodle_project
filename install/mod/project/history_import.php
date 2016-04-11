@@ -161,6 +161,7 @@ if ($mform->is_cancelled()) {
 		
 		//Add 1 meeting attended for each user who attended a meeting, and 1 for the whole group
 		foreach($names_unique as $key=>$user){
+			echo "<br/>TEST checking user:".$user;
 			$attended = $DB->get_record('project_user_mapping', array('skype'=>$user), 'id,group_id,meetings_attended');
 			if(!$attended)
 				continue;
@@ -189,7 +190,7 @@ if ($mform->is_cancelled()) {
 	//redirect("history_import.php?cmid=$cm->id&mapped=true");
 	
 }
-
+echo "<br/>TEST history import";
 if($mapped){
 	//Check if names are in mapped table.
 	//Get mapped users

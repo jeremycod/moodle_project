@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<project name="morph_moodle" default="pull" basedir="project">
+
+	<echo message="Pulling in code into Moodle mod directory"/>
+	<property name="workspace_home" location="."/>
+	<property name="apache_home" location="/var/www/html/moodle26dev"/>
+	<property name="moodle_mod" location="${apache_home}/mod"/>
+	<property name="moodle_morph" location="${workspace_home}"/>
+
+	<echo message="Pulling in code into Moodle mod directory"/>
+	<target name="pull" description="Pull source files">
+		<copy todir="${moodle_mod}/project/" overwrite="true">
+			<fileset dir="${moodle_morph}/">
+				<include name="**/*.*"/>
+
+			</fileset>
+
+		</copy>
+	</target>
+
+</project>

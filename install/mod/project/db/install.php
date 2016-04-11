@@ -33,5 +33,10 @@ defined('MOODLE_INTERNAL') || die;
 
 function xmldb_project_install() {
     global $CFG;
+    require_once($CFG->dirroot . '/local/morph/adminlib.php');
+    $pluginmanager = new morph_plugin_manager('activity');
+    $pluginmanager->install_prototype('project');
+    $pluginmanager->move_plugin('project', 'down');
+    return true;
 
 }

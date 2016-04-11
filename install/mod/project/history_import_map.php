@@ -56,7 +56,7 @@ $history = new stdClass();
 $summary = new stdClass();
 $history->id         = null;
 $history->cmid = $cm->id;
-
+echo "<br/>TEST history_import_map...";
 //Check if names are in mapped table.
 //Get mapped users
 $mapped_users = $DB->get_records('project_user_mapping', array('course_id'=>$course->id,'group_id'=>$currentgroup));
