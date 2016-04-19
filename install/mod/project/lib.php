@@ -93,10 +93,10 @@ function project_add_instance($data, $mform = null) {
 
     $data->timemodified = time();
     $displayoptions = array();
-    if ($data->display == RESOURCELIB_DISPLAY_POPUP) {
+  /*  if ($data->display == RESOURCELIB_DISPLAY_POPUP) {
         $displayoptions['popupwidth']  = $data->popupwidth;
         $displayoptions['popupheight'] = $data->popupheight;
-    }
+    }*/
     $displayoptions['printintro']   = $data->printintro;
     $data->displayoptions = serialize($displayoptions);
 
@@ -133,31 +133,31 @@ function project_update_instance($data, $mform) {
     require_once("$CFG->libdir/resourcelib.php");
 
     $cmid        = $data->coursemodule;
-    $draftitemid = $data->project['itemid'];
+  //  $draftitemid = $data->project['itemid'];
 
     $data->timemodified = time();
     $data->id           = $data->instance;
     $data->revision++;
 
-    $displayoptions = array();
+  /*  $displayoptions = array();
     if ($data->display == RESOURCELIB_DISPLAY_POPUP) {
         $displayoptions['popupwidth']  = $data->popupwidth;
         $displayoptions['popupheight'] = $data->popupheight;
-    }
+    }*/
     $displayoptions['printintro']   = $data->printintro;
     $data->displayoptions = serialize($displayoptions);
 
-    $data->content       = $data->project['text'];
-    $data->contentformat = $data->project['format'];
+  //  $data->content       = $data->project['text'];
+   // $data->contentformat = $data->project['format'];
 
     $DB->update_record('project', $data);
 	$DB->set_field('course_modules', 'groupmode', 1, array('id'=>$cmid)); //Automatically set separate Group Mode
 
     $context = context_module::instance($cmid);
-    if ($draftitemid) {
+  /*  if ($draftitemid) {
         $data->content = file_save_draft_area_files($draftitemid, $context->id, 'mod_project', 'content', 0, project_get_editor_options($context), $data->content);
         $DB->update_record('project', $data);
-    }
+    }*/
 
     return true;
 }
@@ -414,13 +414,16 @@ function displayUsersAsText($users_array){
 	$lastelement = end($users_array);
 	$firstelement = reset($users_array);
 	foreach($users_array as $user){
-		if($lastelement == $user && $firstelement != $lastelement)
-			$result .= " & ".ucfirst($user)." ";
-		else
-			$result .= ucfirst($user).", ";
+		if($lastelement == $user && $firstelement != $lastelement) { //if this is the last and not member to be listed
+			$result .= " & " . ucfirst($user) . " ";
+		}else
+			if($firstelement != $lastelement)
+				 				$result .= ucfirst($user)." ";
+		 			else
+ 				$result .= ucfirst($user).", ";
 	}//end for
 	//$result .= implode(", ",$users_array);
-	return ucwords($result);
+	return rtrim(ucwords($result),",");
 }
 
 /**
@@ -436,7 +439,7 @@ function displayForums(){
 	if($forum = $DB->get_records('course_modules', array('module'=>9,  'course'=>$COURSE->id, 'groupmode'=>1), 'id,instance')){
 		foreach($forum as $forum_link){
 			$forum_name = $DB->get_record('forum', array('id'=>$forum_link->instance), 'name');
-			$html .= ' <tr><td><img src="'.$CFG->wwwroot.'\mod\forum\pix\icon.png" width="16px" height="16px"> <a href="'.$CFG->wwwroot.'\mod\forum\view.php?id='.$forum_link->id.'">'.$forum_name->name.'</a></td></tr>';
+			$html .= ' <tr><td><img src="'.$CFG->wwwroot.'/mod/forum/pix/icon.png" width="16px" height="16px"> <a href="'.$CFG->wwwroot.'\mod\forum\view.php?id='.$forum_link->id.'">'.$forum_name->name.'</a></td></tr>';
 		}
 		//$html .= "<br />";
 	}
@@ -538,7 +541,8 @@ function AlertWorkloadDistribution($group){
 	if($total_hours==0)
 		return;
 	foreach($member_rank as $key=>$member){
-		if(!empty(MemberWorkloadDistribution($member, $equal_hours))){
+		$workload = MemberWorkloadDistribution($member, $equal_hours);
+		if(!empty($workload)){
 			add_to_log($course, 'project', 'alert', 'workload dist: '.$group);
 			return true;
 			break;
@@ -618,7 +622,7 @@ function checkAlerts($userid, $currentgroup){
 	//If meetings attended is <= 50% and they have not been previously alerted since the last meeting, prompt the user.
 	if(($alerts->meetings_attended/$alerts->meetings_total)*100 <= 50 && $alerts->meeting_alert==0){
 		$header="Meeting Alert!";
-		$content="You are missing too many meetings.";
+		$content="It seems that you have missed over 50% of the meetings in your group. Please try to attend the next meeting as it is important for the project\'s success that all team members are attending frequently.";
 		$alerts_controller->create_interruptive_notification_alert($USER->id,$COURSE->id,0, $header, $content);
 			/* $html .= '
 			<div id="dialog-message" title="Meeting Alert!">
@@ -688,7 +692,8 @@ function checkPreviousCohorts($course, $currentgroup){
 	$num_failed = 0;
 	foreach($failed_groups as $group=>$failed){
 		//If there are no groups with results, we don't continue our analysis
-		if(empty($DB->count_records('project_previous_cohorts', array('group_id' => $group,'time_percentage'=>$record->time_percentage))))
+		$count_cohorts = $DB->count_records('project_previous_cohorts', array('group_id' => $group,'time_percentage'=>$record->time_percentage));
+		if(empty($count_cohorts))
 			return;
 		$failed_progress[$num_failed] = $DB->get_record_sql('SELECT progress_percentage FROM mdl_project_previous_cohorts WHERE group_id = :group_id AND time_percentage = :time ORDER BY progress_percentage DESC LIMIT 1', array('group_id' => $group,'time'=>$record->time_percentage))->progress_percentage;
 		$num_failed++;
@@ -703,7 +708,8 @@ function checkPreviousCohorts($course, $currentgroup){
 	$num_passed = 0;
 	foreach($passed_groups as $group=>$passed){
 		//If there are no groups with results, we don't continue our analysis
-		if(empty($DB->count_records('project_previous_cohorts', array('group_id' => $group,'time_percentage'=>$record->time_percentage))))
+		$count_cohorts = $DB->count_records('project_previous_cohorts', array('group_id' => $group,'time_percentage'=>$record->time_percentage));
+		if(empty($count_cohorts))
 			return;
 			
 		//Select the highest average percentage of work done from table
@@ -731,6 +737,8 @@ function checkPreviousCohorts($course, $currentgroup){
 	if($record->progress_percentage < $min_passed){			
 		$cohort_alert = $DB->get_record('project_user_mapping', array('user_id'=>$USER->id), 'cohort_alert')->cohort_alert;
 		$header='Very High Risk Progress Alert';
+		//$content="				Your group\'s progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
+				//				Your group is at very high risk of failing the project because <b>'.count($failed_progress).'</b> groups from previous cohorts had the same amount of work done at this time and failed. To improve your group\'s risk level, you need to complete at least <b>'.($min_passed-$record->progress_percentage).'%</b> more of your project.";
 		$content="You groups progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
 				You are at-risk because <b>'.count($failed_progress).'</b> groups had the same amount of work done and failed. To improve your risk level, you need to complete <b>'.($min_passed-$record->progress_percentage).'%</b> more of your project.";
 		$alerts_controller->create_interruptive_notification_alert($USER->id,$COURSE->id,0, $header, $content);
@@ -744,11 +752,17 @@ function checkPreviousCohorts($course, $currentgroup){
 		//Check if last popup was X seconds ago from settings.php
 		if($cohort_alert+($config->prevcohortalertsfreq*60) < time()){
 			$header='Very High Risk Progress Alert';
-			$content='Group Progress: '.$record->progress_percentage.'% <br/><br/>
+
+			/*$content='Group Progress: '.$record->progress_percentage.'% <br/><br/>
 			You groups progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br /><br />
 				You are at-risk because <b>'.count($failed_progress).'</b> groups had the same amount of work done and failed.<br /><br />
 				To improve your risk level, you need to complete <b>'.($min_passed-$record->progress_percentage).'%</b> more of your project <br /><br />
-				We Recommend visiting <a href="'.$CFG->wwwroot.'/mod/project/view.php?id='.$projectid.'">your project</a>.<br />';
+				We Recommend visiting <a href="'.$CFG->wwwroot.'/mod/project/view.php?id='.$projectid.'">your project</a>.<br />';*/
+			$content="Your group\'s progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br /><br />
+Your group is at very high risk of failing the project because <b>'.count($failed_progress).'</b> groups from previous cohorts<br />
+had the same amount of work done at this time and failed. <br /><br />
+To improve your group\'s risk level, you need to complete at least <b>'.($min_passed-$record->progress_percentage).'%</b> more of your project.<br /><br />
++				We recommend visiting <u><a href=\"'.$CFG->wwwroot.'/mod/project/view.php?id='.$projectid.'\">your project</a></u>.<br />";
 			$alerts_controller->create_interruptive_notification_alert($USER->id,$COURSE->id,0, $header, $content);
 		/*$html .=
 			<div id="dialog-message" title="Very High Risk Progress Alert!">
@@ -792,9 +806,11 @@ function checkPreviousCohorts($course, $currentgroup){
 		//High Risk if the progress is less than the average amount of work of failed groups
 		if($record->progress_percentage < $avg_failed){
 			 $header="High Risk Progress Alert";
-			$content='You groups project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
-				You are at-risk because <b>'.count($failed_progress).'</b> groups had the same amount of work done and failed. To improve your risk level, you need to complete <b>'.($avg_failed-$record->progress_percentage).'%</b> more of your project.';
+		//	$content='You groups project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
+			//	You are at-risk because <b>'.count($failed_progress).'</b> groups had the same amount of work done and failed. To improve your risk level, you need to complete <b>'.($avg_failed-$record->progress_percentage).'%</b> more of your project.';
 			$alerts_controller->create_interruptive_notification_alert($USER->id,$COURSE->id,0, $header, $content);
+			$content="Your group\'s project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
+				Your group is at high risk of failing the project because <b>'.count($failed_progress).'</b> groups from previous cohorts had the same amount of work done at this time and failed. To improve your group\'s risk level, you need to complete at least <b>'.($min_passed-$record->progress_percentage).'%</b> more of your project.";
 			/*
 			$html = '<div style="border:1px dashed black;width:80%;background:#FFFFD1;">
 				<img style="float:left;" src="'.$CFG->wwwroot.'/mod/project/pix/alert_icon.png" width="12px" height="12px" />
@@ -806,10 +822,15 @@ function checkPreviousCohorts($course, $currentgroup){
 			//Check if last popup was X seconds ago from settings.php
 			if($cohort_alert+($config->prevcohortalertsfreq*60) < time()){
 				$header="High Risk Progress Alert!";
-				$content='Group Progress: '.$record->progress_percentage.'%<br/><br/>You groups project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br /><br />
+				/*$content='Group Progress: '.$record->progress_percentage.'%<br/><br/>You groups project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br /><br />
 				You are at-risk because <b>'.count($failed_progress).'</b> groups had the same amount of work done and failed.<br /><br />
 				To improve your risk level, you need to complete <b>'.($avg_failed-$record->progress_percentage).'%</b> more of your project.<br /><br />
-				We Recommend visiting <a href="'.$CFG->wwwroot.'/mod/project/view.php?id='.$projectid.'">your project</a>.<br />';
+				We Recommend visiting <a href="'.$CFG->wwwroot.'/mod/project/view.php?id='.$projectid.'">your project</a>.<br />';*/
+				$content="Your group\'s project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br /><br />
+Your group is at high risk of failing the project because <b>'.count($failed_progress).'</b> groups from previous cohorts<br />
+had the same amount of work done at this time and failed. <br /><br />
+To improve your group\'s risk level, you need to complete at least <b>'.($min_passed-$record->progress_percentage).'%</b> more of your project.<br /><br />
+We recommend visiting <u><a href=\"'.$CFG->wwwroot.'/mod/project/view.php?id='.$projectid.'\">your project</a></u>.<br />";
 				$alerts_controller->create_interruptive_notification_alert($USER->id,$COURSE->id,0, $header, $content);
 			/*$html .= '<div id="dialog-message" title="High Risk Progress Alert!">
 			  <p>
@@ -850,9 +871,11 @@ function checkPreviousCohorts($course, $currentgroup){
 		//Low risk if the progress is greater than the average amount of work of successful groups
 		if($record->progress_percentage > $avg_passed){
 			$header="Low Risk Progress Alert";
-			$content='You groups project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
-				You are at-risk because <b>'.count($failed_progress).'</b> groups had the same amount of work done and failed. To improve your risk level, you need to complete <b>'.($max_failed-$record->progress_percentage).'%</b> more of your project.
-';
+			//$content='You groups project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
+			//	You are at-risk because <b>'.count($failed_progress).'</b> groups had the same amount of work done and failed. To improve your risk level, you need to complete <b>'.($max_failed-$record->progress_percentage).'%</b> more of your project.
+//';
+			$content="Your group\'s project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
+Your group is at low risk of failing the project because <b>'.count($failed_progress).'</b> groups from previous cohorts had the same amount of work done at this time and failed. To improve your group\'s risk level, you need to complete at least <b>'.($min_passed-$record->progress_percentage).'%</b> more of your project.";
 			/*$html = '
 			<div style="border:1px dashed black;width:80%;background:#FFFFD1;">
 				<img style="float:left;" src="'.$CFG->wwwroot.'/mod/project/pix/alert_icon.png" width="12px" height="12px" />
@@ -868,16 +891,19 @@ function checkPreviousCohorts($course, $currentgroup){
 		
 		//Medium risk if the progress is between the average amount of work of failed and successful groups
 		if($record->progress_percentage >= $avg_failed && $record->progress_percentage <= $avg_passed){
-			$html = '
+			$header="Medium Risk Progress Alert";
+			$content="Your group\'s project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
+Your group is at medium risk of failing the project because <b>'.count($failed_progress).'</b> groups from previous cohorts had the same amount of work done at this time and failed. To improve your group\'s risk level, you need to complete at least <b>'.($min_passed-$record->progress_percentage).'%</b> more of your project.";
+		/*	$html = '
 			<div style="border:1px dashed black;width:80%;background:#FFFFD1;">
 				<img style="float:left;" src="'.$CFG->wwwroot.'/mod/project/pix/alert_icon.png" width="12px" height="12px" />
 				<span id="title" style="margin:auto;"> Medium Risk Progress Alert</span><br />
 				You groups project progress is currently at <b>'.$record->progress_percentage.'%</b> and the time into your project is '.$record->time_percentage.'%.<br />
 				You are at-risk because <b>'.count($failed_progress).'</b> groups had the same amount of work done and failed. To improve your risk level, you need to complete <b>'.($avg_passed-$record->progress_percentage).'%</b> more of your project.
 			</div>';	
-		
+		*/
 		add_to_log($course->id, 'project', 'alert', 'medium risk');
-		echo $html;
+		//echo $html;
 		}
 	}
 		
@@ -902,9 +928,9 @@ LEFT JOIN `mdl_forum_discussions` t2
 
 	$config = get_config('project');
 	$message = new stdClass();
-	$message->size_small =  $averages->avgmsgsize*$config->smallmsg;
+	$message->size_small =  $averages->avgmsgsize*($config->smallmsg/100);
 	$message->size_medium = $averages->avgmsgsize*1.0;
-	$message->size_large =  $averages->avgmsgsize*$config->largemsg;
+	$message->size_large =  $averages->avgmsgsize*($config->largemsg/100);
 	
 		$charCount = new stdClass();
 	$charCount = $DB->get_records_sql('SELECT t0.userid, coalesce(Schar,0) as Schar, coalesce(Mchar,0) as Mchar, coalesce(Lchar,0) as Lchar, coalesce(Tchar,0) as Tchar
@@ -959,10 +985,9 @@ LEFT JOIN `mdl_forum_discussions` t2
 	
 	//Get number of group members
 	$numMembers = $DB->count_records('groups_members', array('groupid'=>$currentgroup));
-	
 	$stats->avg = $stats->sum/$numMembers;
-	$stats->low = $stats->avg * $config->lowthreshold;
-	$stats->high = $stats->avg * $config->highthreshold;
+	$stats->low = $stats->avg * ($config->lowthreshold / 100);
+	$stats->high = $stats->avg * ($config->highthreshold / 100);
 	//var_dump($stats);
 	
 	$low_participators = array();
@@ -983,17 +1008,29 @@ LEFT JOIN `mdl_forum_discussions` t2
 		if($charCount[$USER->id]->alert == "High"){
 			if($alerts->forum_alert+($config->highforumalertsfreq*60*60*24) > time())
 				return;
-			$msg = $USER->firstname.", You are a high participator in the forums.<br /><br /> We have determined you are rather active in the group forums. <br /><br />
+			$msg = $USER->firstname.", you are contributing really a lot to the group forums! This is great! <br /><br />
+However, for the group project to be successful, it would be important to get other members' ideas, concerns and thoughts as well. <br /><br />
+You would be a good leader for your group! Try to improve your leadership skills by trying to incorporate others in the discussion, especially ";
+
+$msg .= rtrim(displayUsersAsText($low_participators),'', '');
+$msg .= " who are not participating as much!";
+$alert_icon = "info.png";
+		/*	$msg = $USER->firstname.", You are a high participator in the forums.<br /><br /> We have determined you are rather active in the group forums. <br /><br />
 			As an additional challenge to gain leadership skills, try incorporating others in to the discussion, especially ";
 			$msg .= displayUsersAsText($low_participators);
-			$msg .= " who's not participating as much.";
+			$msg .= " who's not participating as much.";*/
 		}
 		else{
 			if($alerts->forum_alert+($config->lowforumalertsfreq*60*60*24) > time())
 				return;
-				
-			$msg = $USER->firstname.", You are a low participator in the group forums.<br /><br /> Try posting more in-depth, detailed ideas, concepts or thoughts to expand on your posts and contribute as equally as others.<br /><br />Be sure to check out the group forums below:";
-			$msg .= "<br /><br />".displayForums();
+			$msg = $USER->firstname.", it seems that you have not contributed much to the group forums so far. <br /><br />
+For the group project to be successful, it is important that each team member contributes to the discussions. Try to share some ideas, concerns or thoughts with your team members by posting to the discussion forum! <br /><br />
+You can access the current discussions here: ";
+$msg .= "<br/><br/><u>".displayForums()."</u>";
+$alert_icon = "alert_icon.png";
+
+			//$msg = $USER->firstname.", You are a low participator in the group forums.<br /><br /> Try posting more in-depth, detailed ideas, concepts or thoughts to expand on your posts and contribute as equally as others.<br /><br />Be sure to check out the group forums below:";
+			//$msg .= "<br /><br />".displayForums();
 			}
 		$header='Forum Participation Alert!';
 
@@ -1042,9 +1079,9 @@ function checkImportedParticpation($currentgroup, $alerts){
 		
 	$config = get_config('project');
 	$message = new stdClass();
-	$message->size_small =  $averages->avgmsgsize*$config->smallmsg;
+	$message->size_small =  $averages->avgmsgsize * ($config->smallmsg / 100);
 	$message->size_medium = $averages->avgmsgsize*1.0;
-	$message->size_large =  $averages->avgmsgsize*$config->largemsg;
+	$message->size_large =  $averages->avgmsgsize * ($config->largemsg / 100);
 		
 	$charCount = new stdClass();
 	$charCount = $DB->get_records_sql('SELECT userid, coalesce(Schar,0) as Schar, coalesce(Mchar,0) as Mchar, coalesce(Lchar,0) as Lchar, coalesce(Tchar,0) as Tchar FROM
@@ -1098,8 +1135,8 @@ function checkImportedParticpation($currentgroup, $alerts){
 		$numMembers = $DB->count_records('groups_members', array('groupid'=>$currentgroup));
 		
 		$stats->avg = $stats->sum/$numMembers;
-		$stats->low = $stats->avg * $config->lowthreshold;
-		$stats->high = $stats->avg * $config->highthreshold;
+	$stats->low = $stats->avg * ($config->lowthreshold / 100);
+	$stats->high = $stats->avg * ($config->highthreshold / 100);
 		
 		$low_participators = array();
 		foreach($charCount as $member) {
@@ -1117,15 +1154,28 @@ function checkImportedParticpation($currentgroup, $alerts){
 		if($charCount[$USER->id]->alert == "High"){
 			if($alerts->import_alert+($config->highimportalertsfreq*60*60*24) > time())
 				return;
-			$msg .= $USER->firstname.", You are a high participator in the Skype conversations.<br /><br />We have determined you are rather active in the imported Skype chats.<br /><br />
+
+			$msg .= $USER->firstname.", you are contributing really a lot to the Skype conversations! This is great!<br /><br />
+			However, for the group project to be successful, it would be important to get other members' ideas, concerns and thoughts as well. <br /><br />
+You would be a good leader for your group! Try to improve your leadership skills by trying to incorporate others in the discussion, especially ";
+$msg .= rtrim(displayUsersAsText($low_participators),", ");
+$msg .= " who is not participating as much!";
+$alert_icon = "info.png";
+
+			/*$msg .= $USER->firstname.", You are a high participator in the Skype conversations.<br /><br />We have determined you are rather active in the imported Skype chats.<br /><br />
 			As an additional challenge, try incorporating others in to the discussion, especially ";
 			$msg .= displayUsersAsText($low_participators);
-			$msg .= " who's not participating as much during the Skype chats.";
+			$msg .= " who's not participating as much during the Skype chats.";*/
 		}
 		else{
 			if($alerts->import_alert+($config->lowimportalertsfreq*60*60*24) > time())
 				return;
-			$msg = $USER->firstname.", You are a low participator in the Skype conversations.<br /><br />During your next Skype meeting, try posting more in-depth, detailed ideas, concepts or thoughts to expand on your posts and contribute as equally as others.";
+			//$msg = $USER->firstname.", You are a low participator in the Skype conversations.<br /><br />During your next Skype meeting, try posting more in-depth, detailed ideas, concepts or thoughts to expand on your posts and contribute as equally as others.";
+			$msg = $USER->firstname.", it seems that you have not contributed much to the Skype conversations so far. <br /><br />
+			For the group project to be successful, it is important that each team member contributes to the discussions.<br /><br />
+			Try to share some ideas, concerns or thoughts with your team members in the next Skype meeting!";
+			$alert_icon = "alert_icon.png";
+
 			}
 		$alerts_controller=new alerts_controller();
 		$header=$charCount[$USER->id]->alert.' Skype Participation Alert!';
@@ -1163,13 +1213,14 @@ function checkImportedParticpation($currentgroup, $alerts){
 
 /*Go through grades table and find new groups that have finished a course and add them to our new table.*/
 function populate_completed_groups_cron(){
-	global $DB,$CFG;
+	global $DB,$CFG, $COURSE;;
 	require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
 	$log=new moodle\local\morph\Logger(array('prefix'=>"cron_"));
 	$log->debug("populate_completed_groups_cron");
 	
 	//Run for all courses that have project 
 	$all_projects = $DB->get_records('project');
+	$failed = 0;
 	foreach($all_projects as $project){
 	//Get a list of groups already completed and added to the table.
 	$completed_groups = $DB->get_records('project_completed_groups', null, null, 'group_id');
@@ -1178,6 +1229,10 @@ function populate_completed_groups_cron(){
 	$grade_id = $DB->get_record('grade_items', array('courseid'=>$project->course,'itemtype'=>'course'), 'id')->id;
 	//Get the users who have a final grade
 	$users_grade = $DB->get_records_sql('SELECT userid,finalgrade FROM mdl_grade_grades WHERE itemid = :itemid', array('itemid' => $grade_id));
+		if(empty($users_grade)) { //If no grades exist,
+			trace('No grades...exiting...');
+			break;
+		}
 		$grades=array();
 	//get the group for each user with a final grade
 	foreach($users_grade as $uid=>$user){
@@ -1271,7 +1326,6 @@ LEFT JOIN
 	WHERE groupid = '.$currentgroup.'  AND system = 0 AND LENGTH(message) < '.$message_size->small.'
 	GROUP BY userid )t5
 ON t4.userid = t5.userid';
-	$log->debug("QUERY:".$query);
 
 	$charCount = $DB->get_records_sql($query);
 
@@ -1294,13 +1348,10 @@ ON t4.userid = t5.userid';
 	$messageid = $DB->insert_record('chat_messages', $statsmsg);
 	$DB->insert_record('chat_messages_current', $statsmsg);
 	$log->debug("inserted into chat_messages_current:".json_encode($statsmsg));
-	$log->debug("CHAR COUNT:".json_encode($charCount));
 	//Iterate through all members of a chat and find any who has a word count lower or higher than the thresholds
 	$alerts_controller=new alerts_controller();
 	$theme = 'bubble';
 	 foreach($charCount as $member) {
-		$log->debug("member:".json_encode($member));
-		$log->debug("has tchars:".$member->tchars." low:".$stats->low." high:".$stats->high);
 		if($member->tchars < $stats->low){
 			$currentuser=$DB->get_record('user',array('id'=>$member->userid));
 			$member->alert = "Low";
@@ -1308,11 +1359,8 @@ ON t4.userid = t5.userid';
 			$header="SYSTEM ALERT!";
 			$tz = get_user_timezone($currentuser->timezone);
 			//$strtime = userdate(time(), get_string('strftimemessage', 'chat'), $tz);
-			$content = get_string('alert-low', 'mod_project', fullname($currentuser));
-			//$content='some content';
-			$log->debug("event  to generate:".json_encode($content));
-			$log->debug("FOR USER:".json_encode(fullname($currentuser)));
-			 $alerts_controller->create_top_panel_notification_alert($currentuser->id, $courseid,0,"error", $header, $content);
+			$content = get_string('alert-low', 'mod_project', $currentuser->firstname);
+    		 $alerts_controller->create_top_panel_notification_alert($currentuser->id, $courseid,0,"error", $header, $content);
 
 
 		/*	$message = new stdClass();
@@ -1338,12 +1386,8 @@ ON t4.userid = t5.userid';
 		 	$member->alert = "High";
 			$currentuser=$DB->get_record('user',array('id'=>$member->userid));
 			$header="SYSTEM ALERT!";
-			$content = get_string('alert-high', 'mod_project', fullname($currentuser));
-
-
-			$log->debug("event  to generate:".json_encode($content));
-			$log->debug("FOR USER:".json_encode(fullname($currentuser)));
-			 $alerts_controller->create_top_panel_notification_alert($currentuser->id, $courseid,0,"success", $header, $content);
+			$content = get_string('alert-high', 'mod_project', $currentuser->firstname);
+   	        $alerts_controller->create_top_panel_notification_alert($currentuser->id, $courseid,0,"success", $header, $content);
 
 			//Create alert object
 		/*	$message = new stdClass();
@@ -1362,7 +1406,6 @@ ON t4.userid = t5.userid';
 
 		}
 		else{
-			$log->debug("NO ALERTS FOR THIS USER");
 			$member->alert = null;
 		}
 

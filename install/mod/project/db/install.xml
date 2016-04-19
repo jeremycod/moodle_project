@@ -130,7 +130,18 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-		<TABLE NAME="project_previous_cohorts" COMMENT="Groups progress table">
+    <TABLE NAME="project_groups_check" COMMENT="Groups that have been marked as completed, with final grades">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="group_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="lastcheck" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+	<TABLE NAME="project_previous_cohorts" COMMENT="Groups progress table">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="true"/>
 		<FIELD NAME="group_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>

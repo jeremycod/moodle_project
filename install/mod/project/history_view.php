@@ -73,7 +73,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string('Chat History'), 2);
 
 
-$html = "<img src='pix\\".$history_summary->method.".png' width='16px' heigh='16px' />  ".userdate($history_summary->date)."<br /><br />";
+$html = "<img src='pix/".$history_summary->method.".png' width='16px' heigh='16px' />  ".userdate($history_summary->date)."<br /><br />";
 //$html .= $history->content;
 
 if($history_summary->method=="Skype"){
