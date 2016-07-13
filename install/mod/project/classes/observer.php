@@ -21,6 +21,7 @@ class mod_project_observer {
         require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
         require_once ($CFG->dirroot . "/local/morph/classes/alerts_controller.php");
         require_once($CFG->dirroot."/mod/project/lib.php");
+        require_once($CFG->dirroot."/mod/project/classes/event/chat_message_sent.php");
         require_once($CFG->dirroot."/mod/chat/locallib.php");
         $log=new moodle\local\morph\Logger(array("prefix"=>'chat_'));
 
@@ -29,14 +30,36 @@ class mod_project_observer {
         $log->debug("MESSAGE RECORDSNAPSHOT:".json_encode($message));
         $chatuser = $DB->get_record('chat_users', array('chatid'=>$message->chatid, 'userid'=>$USER->id, 'groupid'=>$message->groupid));
         $log->debug("CHAT USER:".json_encode($chatuser));
-        $alerts_controller=new alerts_controller();
-      //  $currentuser=$DB->get_record('user',array('id'=>$USER->id));
-      //  $content = get_string('alert-low', 'mod_project', $currentuser->firstname);
-      //  $header="TEST SYSTEM ALERT!";
-      //  $log->debug("SENDING TEST MESSAGE:".json_encode($content));
-       // $alerts_controller->create_top_panel_notification_alert($USER->id, $COURSE->id,0,"error", $header, $content);
 
+
+
+        ///Creating customized event here
+        $eventclass='\local_morph\event\chat_message_sent';
+        $cm = get_coursemodule_from_instance('chat', $chatuser->chatid, $chatuser->course);
+        $params = array(
+            'context' => context_module::instance($cm->id),
+            'objectid' => $message->id,
+            // We set relateduserid, because when triggered from the chat daemon, the event userid is null.
+            'relateduserid' => $chatuser->userid,
+            'other'=>array(
+            )
+        );
         $config = get_config('project');
+        $log->debug(" CONFIG:".json_encode($config));
+         $projectconfig=json_decode(json_encode($config),true);
+       // $projectconfig=get_object_wars($config);
+        $log->debug("PROJECT CONFIG:".json_encode($projectconfig));
+        $log->debug("SENDING NEW CHAT EVENT:".json_encode($params));
+        $event = $eventclass::create($params);
+            $event->add_morph_record_snapshot('chat_messages', $message);
+            $event->add_morph_other_data('messagelength',strlen($message->message));
+        $event->add_morph_other_data('config',$projectconfig);
+        $event->trigger();
+
+        ///Finished triggering new event
+
+
+/*
 
         $msgcount = $DB->get_record_sql("SELECT count(*) as msgcnt FROM `mdl_chat_messages_current` WHERE system = 0 AND groupid = ?", array($chatuser->groupid))->msgcnt;
         $mbrcount = $DB->get_record_sql("SELECT count(*) as mbrcnt FROM `mdl_groups_members` WHERE groupid = ?", array($chatuser->groupid))->mbrcnt;
@@ -60,19 +83,9 @@ class mod_project_observer {
                 }
 
             }
-            /*
-            $lastalert = $DB->get_record_sql('SELECT substring(message,7,3) as alert, timestamp FROM `mdl_chat_messages_current` WHERE userid = ? AND system = 1 AND message LIKE ? ORDER BY timestamp DESC LIMIT 1', array($message->userid, 'alert%'));
-            if($lastalert->alert=='low')
-                $alert_type = 'lowchatalertsfreq';
-            else
-                $alert_type = 'highchatalertsfreq';
-                     $wait_until = ($lastalert->timestamp+($config->$alert_type*60));
 
-            if(time() > $wait_until || !isset($lastalert) ){ //If last alert happened over X minutes, we can check for new alerts.
-                checkChatAlerts($chatuser,$COURSE->id);
-            }*///end if
         }//end if
-
+*/
     }
 
 

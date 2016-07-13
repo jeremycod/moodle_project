@@ -611,44 +611,26 @@ function checkAlerts($userid, $currentgroup){
 	if($alerts->cohort_alert+($config->prevcohortalertsfreq) < time() || $alerts->cohort_alert==0 )
  		checkPreviousCohorts($COURSE, $currentgroup);
 	//if($alerts->forum_alert+($config->lowforumalertsfreq*60*60*24) < time() || $alerts->forum_alert+($config->highforumalertsfreq*60*60*24) < time() || $alerts->forum_alert==0 )
-	if($alerts->forum_alert+($config->lowforumalertsfreq*60*5) < time() || $alerts->forum_alert+($config->highforumalertsfreq*60*60*24) < time() || $alerts->forum_alert==0 )
-		checkForumParticpation($currentgroup, $alerts);
+	//if($alerts->forum_alert+($config->lowforumalertsfreq*60*5) < time() || $alerts->forum_alert+($config->highforumalertsfreq*60*60*24) < time() || $alerts->forum_alert==0 )
+	//	checkForumParticpation($currentgroup, $alerts);
 	//if($alerts->import_alert+($config->lowimportalertsfreq*60*60*24) < time() || $alerts->import_alert+($config->highimportalertsfreq*60*60*24) < time() || $alerts->import_alert==0 )
-	if($alerts->import_alert+($config->lowimportalertsfreq*60*5) < time() || $alerts->import_alert+($config->highimportalertsfreq*60*60*24) < time() || $alerts->import_alert==0 )
-		checkImportedParticpation($currentgroup, $alerts);
+	//if($alerts->import_alert+($config->lowimportalertsfreq*60*5) < time() || $alerts->import_alert+($config->highimportalertsfreq*60*60*24) < time() || $alerts->import_alert==0 )
+		//checkImportedParticpation($currentgroup, $alerts);
 	
 	//Make sure there has been at least 1 meeting, otherwise divide by zero error.
-	if($alerts->meetings_total>0){
+/*if($alerts->meetings_total>0){
 	//If meetings attended is <= 50% and they have not been previously alerted since the last meeting, prompt the user.
 	if(($alerts->meetings_attended/$alerts->meetings_total)*100 <= 50 && $alerts->meeting_alert==0){
 		$header="Meeting Alert!";
 		$content="It seems that you have missed over 50% of the meetings in your group. Please try to attend the next meeting as it is important for the project\'s success that all team members are attending frequently.";
-		$alerts_controller->create_interruptive_notification_alert($USER->id,$COURSE->id,0, $header, $content);
-			/* $html .= '
-			<div id="dialog-message" title="Meeting Alert!">
-			  <p>
-				<span  style="float:left; margin:0 7px 10px 0;"><img src="'.$CFG->wwwroot.'/mod/project/pix/alert_icon.png" width="32px" height="32px" /></span>
-				You are missing too many meetings.
-			  </p>
-			</div>
-			<script>
-			  $(function() {
-				$( "#dialog-message" ).dialog({
-				  modal: true,
-				  buttons: {
-					Ok: function() {
-					  $( this ).dialog( "close" );
-					}
-				  }
-				});
-			  });
-			  </script>';*/
+	//	$alerts_controller->create_interruptive_notification_alert($USER->id,$COURSE->id,0, $header, $content);
+
 			 //Set a flag to true that the user has been alerted to not allow for repeat alerts until the next meeting.
 			$DB->set_field('project_user_mapping', 'meeting_alert', 1, array('user_id'=>$userid));
 			
 			add_to_log($COURSE->id, 'project', 'alert', 'meeting attendance '.$alerts->meetings_attended.'/'.$alerts->meetings_total);
 	}//End check 
-	}//end if meetings > 0
+	}//end if meetings > 0*/
 	}//end if alerts true
 	
 	return $html;
@@ -1297,6 +1279,8 @@ GROUP BY userid) C');*/
 	$message_size->medium = $averages*1.0;
 	$message_size->large =  $averages*$config->largemsg;
 
+	$log->debug("CONFIG:".json_encode($config));
+
 	$charCount = new stdClass();
 	$query='SELECT t4.userid, coalesce(t5.Schars,0) as Schars, coalesce(t1.Mchars,0) as Mchars, coalesce(t2.Lchars,0) as Lchars, coalesce(t3.Tchars,0) as Tchars
 FROM
@@ -1336,18 +1320,18 @@ ON t4.userid = t5.userid';
 	$stats->high = $stats->avg * $config->highthreshold;
 
 	//create alert object
-	$statsmsg = new stdclass();
+	/*$statsmsg = new stdclass();
 	$statsmsg->chatid = 0;
 	$statsmsg->userid = 0;
 	$statsmsg->groupid = $currentgroup;
 	$statsmsg->message =  'stats: avg: '.$averages.' avg by members:'.$stats->avg.' lo:'.$stats->low.' hi:'.$stats->high.' ms:'.$message_size->small.' mm:'.$message_size->medium.' ml: '.$message_size->large;
 	$statsmsg->system = 1;
 	$statsmsg->timestamp = time();
-
+*/
 	//insert alert message to the database
 	$messageid = $DB->insert_record('chat_messages', $statsmsg);
-	$DB->insert_record('chat_messages_current', $statsmsg);
-	$log->debug("inserted into chat_messages_current:".json_encode($statsmsg));
+	//$DB->insert_record('chat_messages_current', $statsmsg);
+	//$log->debug("inserted into chat_messages_current:".json_encode($statsmsg));
 	//Iterate through all members of a chat and find any who has a word count lower or higher than the thresholds
 	$alerts_controller=new alerts_controller();
 	$theme = 'bubble';
@@ -1363,23 +1347,6 @@ ON t4.userid = t5.userid';
     		 $alerts_controller->create_top_panel_notification_alert($currentuser->id, $courseid,0,"error", $header, $content);
 
 
-		/*	$message = new stdClass();
-			$message->chatid    = $chatuser->chatid;
-			$message->userid    = $member->userid;
-			$message->groupid   = $currentgroup;
-			$message->message   =  'alert-low totalchars:'.$member->tchars.' s:'.$member->schars.' m:'.$member->mchars.' l:'.$member->lchars;
-			$message->system    = 1;
-			$message->timestamp = time();*/
-		//	try{
-                        //Insert alert message to the database
-             //           $messageid = $DB->insert_record('chat_messages', $message);
-			//	$message->id = $messageid;
-			 //          $DB->insert_record('chat_messages_current', $message);
-
-                      //  $log->debug("MESSAGE LOG CREATED FOR MEMBER:".json_encode($message));
-			//}catch(Exception $ex){
-			//	$log->debug('Caught exception while trying to store message:',$ex->getMessage(),"\n");
-			//}
 
 		}
 		else if($member->tchars > $stats->high){
@@ -1389,20 +1356,7 @@ ON t4.userid = t5.userid';
 			$content = get_string('alert-high', 'mod_project', $currentuser->firstname);
    	        $alerts_controller->create_top_panel_notification_alert($currentuser->id, $courseid,0,"success", $header, $content);
 
-			//Create alert object
-		/*	$message = new stdClass();
-			$message->chatid    = $chatuser->chatid;
-			$message->userid    = $member->userid;
-			$message->groupid   = $currentgroup;
-			$message->message   =  'alert-high totalchars:'.$member->tchars.' s:'.$member->schars.' m:'.$member->mchars.' l:'.$member->lchars;
-			$message->system    = 1;
-			$message->timestamp = time();*/
 
-			//Insert alert message to the database
-		//	$messageid = $DB->insert_record('chat_messages', $message);
-		//	$DB->insert_record('chat_messages_current', $message);
-		//	$message->id = $messageid;
-		//	$log->debug("MESSAGE HIGH CREATED FOR MEMBER:".json_encode($message));
 
 		}
 		else{

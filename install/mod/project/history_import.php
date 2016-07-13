@@ -26,6 +26,11 @@
 require('../../config.php');
 require_once($CFG->dirroot.'/mod/project/edit_form.php');
 require_once($CFG->dirroot.'/mod/project/locallib.php');
+require_once($CFG->dirroot."/mod/project/classes/event/history_imported.php");
+
+require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+$log=new moodle\local\morph\Logger(array('prefix'=>"import_"));
+$log->debug("IMPORTING HISTORY CALLED");
 //require_once($CFG->libdir.'/completionlib.php');
 
 $cmid       = required_param('cmid', PARAM_INT);  // Project Module ID
@@ -61,6 +66,7 @@ $mform = new history_import_form(null, array('project'=>$project, 'history'=>$hi
 if(isset($_POST['map_users'])){
 	//var_dump($_POST);break;
 	foreach($_POST as $key=>$value){
+		$log->debug("POST:".$key." value:".json_encode($value));
 		if((substr($key,0,11) == 'member_map-') ){
 			$member_map = substr($key, 12);//Get the student id from the end of the key value
 			$student = $DB->get_record('project_user_mapping', array('user_id'=>$member_map)); //Get student information from the user_map
@@ -72,9 +78,35 @@ if(isset($_POST['map_users'])){
 			$DB->set_field('project_user_mapping', 'meetings_attended', 1, array('user_id'=>$student->user_id,'course_id'=>$student->course_id, 'group_id'=>$student->group_id));
 			}//end if skype name empty
 		}//end if
+		else if($key=='history_records'){
+			$history_records=json_decode($value);
+		}
 	}//end for each loop
+	$mapped_users = $DB->get_records('project_user_mapping', array('course_id'=>$course->id,'group_id'=>$currentgroup));
+	$log->debug("IMPORTING HISTORY MAPPING USERS HERE");
+	///Creating customized event here
+ $eventclass='\local_morph\event\history_imported';
+//$cm = get_coursemodule_from_instance('chat', $chatuser->chatid, $chatuser->course);
+	$params = array(
+		'context' => context_module::instance($cm->id),
+		'objectid' => $project->id,
+		// We set relateduserid, because when triggered from the chat daemon, the event userid is null.
+		//'relateduserid' => $chatuser->userid,
+		'other'=>array(
+		)
+	);
+	$config = get_config('project');
+
+	$projectconfig=json_decode(json_encode($config),true);
+	$event = $eventclass::create($params);
+	$event->add_morph_other_data('history', $history_records);
+	$event->add_morph_other_data('mapped_users',$mapped_users);
+//$event->add_morph_other_data('messagelength',strlen($message->message));
+	$event->add_morph_other_data('config',$projectconfig);
+	$event->trigger();
 	redirect("view.php?id=$cm->id");
 }
+$history_records=array();
 // If data submitted, then process and store.
 if ($mform->is_cancelled()) {
 	redirect("view.php?id=$cm->id");
@@ -112,7 +144,6 @@ if ($mform->is_cancelled()) {
 		if(($key = array_search('SYSTEM', $names_unique)) !== false) {
 			unset($names_unique[$key]);
 		}
-		
 		foreach(preg_split("/((\r?\n)|(\r\n?))/", $data->history) as $line){ //Iterate through each line imported by skype
 			//echo $line."<br/>";
 			preg_match_all("/\[([^\]|\|]*)/", $line, $time); //Seperate the time from the line ( Between [ and ] ) REGEX: /\[([^\]]*)\]/
@@ -152,6 +183,8 @@ if ($mform->is_cancelled()) {
 			
 		//print_r($history);break;
 		$history->id = $DB->insert_record('project_history_imp_detail', $history);
+			$history_records[]=clone $history;
+			//echo "<br/>ARRAY:".json_encode($history_records);
 		}//end for each loop
 		
 		//Remove the SYSTEM user since it will never be assigned.
@@ -161,7 +194,6 @@ if ($mform->is_cancelled()) {
 		
 		//Add 1 meeting attended for each user who attended a meeting, and 1 for the whole group
 		foreach($names_unique as $key=>$user){
-			echo "<br/>TEST checking user:".$user;
 			$attended = $DB->get_record('project_user_mapping', array('skype'=>$user), 'id,group_id,meetings_attended');
 			if(!$attended)
 				continue;
@@ -170,32 +202,31 @@ if ($mform->is_cancelled()) {
 			$DB->set_field('project_user_mapping', 'meetings_attended', ++$inc, array('skype'=>$user));
 			}
 		}
-				
+
 		$mapped = true;
 		}//End if method is skype
 		//If history method is email.
-		elseif($summary->method=="Email") {
+		else if($summary->method=="Email") {
 		
 		$history->message_id = $data->id;
 		$history->time = time();
 		$history->message = $data->history;
 		$history->id = $DB->insert_record('project_history_imp_detail', $history);
+
+			$history_records[]=clone $history;
 		//var_dump($history);
 		
 		}
         //add_to_log($course->id, 'course', 'update mod', '../mod/project/view.php?id='.$cm->id, 'project '.$project->id);
     }
-	
 
 	//redirect("history_import.php?cmid=$cm->id&mapped=true");
 	
 }
-echo "<br/>TEST history import";
 if($mapped){
 	//Check if names are in mapped table.
 	//Get mapped users
 	$mapped_users = $DB->get_records('project_user_mapping', array('course_id'=>$course->id,'group_id'=>$currentgroup));
-	
 	$history->groupid = $currentgroup;
 	$history->method = 'Skype';
 	//If no users are returned, array is empty, fill it with group members id's.
@@ -234,10 +265,37 @@ if($mapped){
 	foreach($mapped_users as $member){ //Fill the array with usernames
 		$user_map[$member->user_id] = studentidToName($member->user_id);
 	}//end for each
+	$mapped_form = new history_map_users(null, array('group_members'=>$user_map,'convo_members'=>$names_unique,'history'=>$history, 'history_records'=>json_encode($history_records)));
+/*	if ($mapped_form->is_cancelled()) {
+		echo "Mform is canceled";
+		$log->debug("Mform is canceled");
+	} else if ($fromform = $mapped_form->get_data()) {
+		echo "MFORM GET DATA";
+		//In this case you process validated data. $mform->get_data() returns data posted in form.
+	} else {
+		echo "MFORM IS NOT CANCELED";
+		$log->debug("Mform is NOT canceled:".json_encode($mapped_form->get_data()));
+	}*/
+///Creating customized event here
+	/*$eventclass='\local_morph\event\history_imported';
+//$cm = get_coursemodule_from_instance('chat', $chatuser->chatid, $chatuser->course);
+	$params = array(
+		'context' => context_module::instance($cm->id),
+		'objectid' => $project->id,
+		// We set relateduserid, because when triggered from the chat daemon, the event userid is null.
+		//'relateduserid' => $chatuser->userid,
+		'other'=>array(
+		)
+	);
+	$config = get_config('project');
 
-	$mapped_form = new history_map_users(null, array('group_members'=>$user_map,'convo_members'=>$names_unique,'history'=>$history));
-
-
+	$projectconfig=json_decode(json_encode($config),true);
+	$event = $eventclass::create($params);
+	$event->add_morph_other_data('history', $history_records);
+	$event->add_morph_other_data('mapped_users',$mapped_users);
+//$event->add_morph_other_data('messagelength',strlen($message->message));
+	$event->add_morph_other_data('config',$projectconfig);
+	$event->trigger();*/
 }
 
 echo $OUTPUT->header();

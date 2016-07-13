@@ -364,6 +364,7 @@ class history_map_users extends moodleform {
 		$history = $this->_customdata['history'];
 		$convo_members = $this->_customdata['convo_members'];
 		$group_members = $this->_customdata['group_members'];
+		$history_records = $this->_customdata['history_records'];
 		
 		$member_count = count($convo_members)-1;
         $mform = $this->_form;
@@ -372,6 +373,10 @@ class history_map_users extends moodleform {
 		$users_map = $DB->get_records('project_user_mapping', array('group_id'=>$history->groupid));
 
 		$mform->addElement('header', 'general', 'Conversation Mapping');
+
+		$mform->addElement('hidden','history_records');
+		$mform->setType("history_records",PARAM_TEXT);
+		$mform->setDefault('history_records',$history_records);
 
 		//Return number of Users found
 		$count_convo_members = count($convo_members)-1; //less one for the blank option
@@ -408,6 +413,8 @@ class history_map_users extends moodleform {
 		
 		$mform->addElement('hidden', 'groupid');
         $mform->setType('groupid', PARAM_RAW);
+
+
 	
 	    $this->set_data($history);
 		
