@@ -148,6 +148,7 @@ if ($mform->is_cancelled()) {
 			//echo $line."<br/>";
 			preg_match_all("/\[([^\]|\|]*)/", $line, $time); //Seperate the time from the line ( Between [ and ] ) REGEX: /\[([^\]]*)\]/
 			$line = preg_replace("/\[([^\]]*)\]/", "", $line);
+            echo "TIME:".json_encode($time)." for LINE:".json_encode($line);
 			if(!empty($time[1][0])){
 				$time = strtotime($time[1][0]); //Save the time as a unix timestamp
 			} else {
@@ -166,20 +167,20 @@ if ($mform->is_cancelled()) {
 			}
 			
 			if(!empty($name[1])){
-				$history->user = $name[1];
+				$history->user_name = $name[1];
 			} else {
-				$history->user = $last_record['user'];
+				$history->user_name = $last_record['user'];
 			}
 			$history->message = $line;
 			
 			//Add user to small array if they are not yet in
-			if(!in_array($history->user ,$names_unique)){
-				$names_unique[$history->user] = $history->user ;
+			if(!in_array($history->user_name ,$names_unique)){
+				$names_unique[$history->user_name] = $history->user_name ;
 			}
 			
 			//Store last records of time and user incase missing from text.
 			$last_record['time']=$time;
-			$last_record['user']=$history->user;
+			$last_record['user']=$history->user_name;
 			
 		//print_r($history);break;
 		$history->id = $DB->insert_record('project_history_imp_detail', $history);

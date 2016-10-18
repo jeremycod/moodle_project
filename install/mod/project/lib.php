@@ -603,13 +603,13 @@ function checkAlerts($userid, $currentgroup){
 	$html = ""; //start blank new html
 	
 	//get an object of the current user and any potential alerts that may have lapsed.
-	$alerts = $DB->get_record('project_user_mapping', array('user_id'=>$userid), 'id,user_id,group_id,meetings_attended,meetings_total,meeting_alert,cohort_alert,forum_alert,import_alert');
+	//$alerts = $DB->get_record('project_user_mapping', array('user_id'=>$userid), 'id,user_id,group_id,meetings_attended,meetings_total,meeting_alert,cohort_alert,forum_alert,import_alert');
 
-	if($alerts){
+	//if($alerts){
 
 	//if($alerts->cohort_alert+($config->prevcohortalertsfreq) < time() || $alerts->cohort_alert==0 )
-	if($alerts->cohort_alert+($config->prevcohortalertsfreq) < time() || $alerts->cohort_alert==0 )
- 		checkPreviousCohorts($COURSE, $currentgroup);
+	//if($alerts->cohort_alert+($config->prevcohortalertsfreq) < time() || $alerts->cohort_alert==0 )
+ 		//checkPreviousCohorts($COURSE, $currentgroup);
 	//if($alerts->forum_alert+($config->lowforumalertsfreq*60*60*24) < time() || $alerts->forum_alert+($config->highforumalertsfreq*60*60*24) < time() || $alerts->forum_alert==0 )
 	//if($alerts->forum_alert+($config->lowforumalertsfreq*60*5) < time() || $alerts->forum_alert+($config->highforumalertsfreq*60*60*24) < time() || $alerts->forum_alert==0 )
 	//	checkForumParticpation($currentgroup, $alerts);
@@ -631,7 +631,7 @@ function checkAlerts($userid, $currentgroup){
 			add_to_log($COURSE->id, 'project', 'alert', 'meeting attendance '.$alerts->meetings_attended.'/'.$alerts->meetings_total);
 	}//End check 
 	}//end if meetings > 0*/
-	}//end if alerts true
+	//}//end if alerts true
 	
 	return $html;
 }
@@ -677,7 +677,7 @@ function checkPreviousCohorts($course, $currentgroup){
 		$count_cohorts = $DB->count_records('project_previous_cohorts', array('group_id' => $group,'time_percentage'=>$record->time_percentage));
 		if(empty($count_cohorts))
 			return;
-		$failed_progress[$num_failed] = $DB->get_record_sql('SELECT progress_percentage FROM mdl_project_previous_cohorts WHERE group_id = :group_id AND time_percentage = :time ORDER BY progress_percentage DESC LIMIT 1', array('group_id' => $group,'time'=>$record->time_percentage))->progress_percentage;
+		$failed_progress[$num_failed] = $DB->get_record_sql('SELECT progress_percentage FROM {project_previous_cohorts} WHERE group_id = :group_id AND time_percentage = :time ORDER BY progress_percentage DESC LIMIT 1', array('group_id' => $group,'time'=>$record->time_percentage))->progress_percentage;
 		$num_failed++;
 	}
 		//Get the average by adding all progress and dividing by the number of groups
@@ -695,7 +695,7 @@ function checkPreviousCohorts($course, $currentgroup){
 			return;
 			
 		//Select the highest average percentage of work done from table
-		$passed_progress[$num_passed] = $DB->get_record_sql('SELECT progress_percentage FROM mdl_project_previous_cohorts WHERE group_id = :group_id AND time_percentage = :time ORDER BY progress_percentage ASC LIMIT 1', array('group_id' => $group,'time'=>$record->time_percentage))->progress_percentage;
+		$passed_progress[$num_passed] = $DB->get_record_sql('SELECT progress_percentage FROM {project_previous_cohorts} WHERE group_id = :group_id AND time_percentage = :time ORDER BY progress_percentage ASC LIMIT 1', array('group_id' => $group,'time'=>$record->time_percentage))->progress_percentage;
 		$num_passed++;
 	}
 		//Get the average by adding all progress and dividing by the number of groups
@@ -708,7 +708,7 @@ function checkPreviousCohorts($course, $currentgroup){
 
 	
 	//Get the project ID for the future link
-	$projectid = $DB->get_record_sql('SELECT id FROM `mdl_course_modules` WHERE module = (SELECT id FROM `mdl_modules` WHERE name = \'project\') AND course = :course ', array('course'=>$course->id))->id;
+	$projectid = $DB->get_record_sql('SELECT id FROM {course_modules} WHERE module = (SELECT id FROM {modules} WHERE name = \'project\') AND course = :course ', array('course'=>$course->id))->id;
 
 	//If a current groups progress is greater than the maximum failure, there is no risk.  (Very High)
 	if($record->progress_percentage > $max_failed){
@@ -899,10 +899,10 @@ global $DB, $USER, $COURSE, $CFG;
 	$alerts_controller=new alerts_controller();
 $averages = $DB->get_record_sql('SELECT avg(coalesce(t1.msgchars,0)) as avgmsgsize
 FROM
-	(SELECT userid FROM `mdl_groups_members` WHERE groupid = '.$currentgroup.' ) t4
+	(SELECT userid FROM {groups_members} WHERE groupid = '.$currentgroup.' ) t4
 LEFT JOIN
-	(SELECT t1.userid, sum(length(message)) as msgchars FROM `mdl_forum_posts` t1
-LEFT JOIN `mdl_forum_discussions` t2
+	(SELECT t1.userid, sum(length(message)) as msgchars FROM {forum_posts} t1
+LEFT JOIN {forum_discussions} t2
 	ON t2.id = t1.discussion
 	WHERE t2.groupid = '.$currentgroup.'
 	GROUP BY t1.userid) t1
@@ -917,36 +917,36 @@ LEFT JOIN `mdl_forum_discussions` t2
 		$charCount = new stdClass();
 	$charCount = $DB->get_records_sql('SELECT t0.userid, coalesce(Schar,0) as Schar, coalesce(Mchar,0) as Mchar, coalesce(Lchar,0) as Lchar, coalesce(Tchar,0) as Tchar
 FROM
-(SELECT userid FROM `mdl_groups_members`
+(SELECT userid FROM {groups_members}
 WHERE groupid = '.$currentgroup.' ) t0
 LEFT JOIN
 (SELECT t1.userid, sum(length(message)) as Schar
-	FROM `mdl_forum_posts` t1
-	LEFT JOIN `mdl_forum_discussions` t2
+	FROM {forum_posts} t1
+	LEFT JOIN {forum_discussions} t2
 	ON t2.id = t1.discussion
 	WHERE t2.groupid = '.$currentgroup.' AND length(message) < '.$message->size_small.' 
 	GROUP BY t1.userid) t3
 ON t0.userid = t3.userid
 LEFT JOIN
 (SELECT t4.userid, sum(length(message)) as Mchar
-	FROM `mdl_forum_posts` t4
-	LEFT JOIN `mdl_forum_discussions` t5
+	FROM {forum_posts} t4
+	LEFT JOIN {forum_discussions} t5
 	ON t5.id = t4.discussion
 	WHERE t5.groupid = '.$currentgroup.' AND length(message) BETWEEN '.$message->size_small.'  AND '.$message->size_large.' 
 	GROUP BY t4.userid) t6
 ON t0.userid = t6.userid
 LEFT JOIN
 (SELECT t7.userid, sum(length(message)) as Lchar
-	FROM `mdl_forum_posts` t7
-	LEFT JOIN `mdl_forum_discussions` t8
+	FROM {forum_posts} t7
+	LEFT JOIN {forum_discussions} t8
 	ON t8.id = t7.discussion
 	WHERE t8.groupid = '.$currentgroup.' AND length(message) > '.$message->size_large.' 
 	GROUP BY t7.userid) t9
 ON t0.userid = t9.userid
 LEFT JOIN
 (SELECT t10.userid, sum(length(message)) as Tchar
-	FROM `mdl_forum_posts` t10
-	LEFT JOIN `mdl_forum_discussions` t11
+	FROM {forum_posts} t10
+	LEFT JOIN {forum_discussions} t11
 	ON t11.id = t10.discussion
 	WHERE t11.groupid = '.$currentgroup.' AND length(message) >= '.$message->size_small.' 
 	GROUP BY t10.userid) t12
@@ -956,10 +956,10 @@ GROUP BY t0.userid');
 	$stats = new stdClass();
 	$stats = $DB->get_record_sql('SELECT sum(coalesce(t1.msgchars,0)) as sum
 FROM
-	(SELECT userid FROM `mdl_groups_members` WHERE groupid = '.$currentgroup.' ) t4
+	(SELECT userid FROM {groups_members} WHERE groupid = '.$currentgroup.' ) t4
 LEFT JOIN
-	(SELECT t1.userid, sum(length(message)) as msgchars FROM `mdl_forum_posts` t1
-LEFT JOIN `mdl_forum_discussions` t2
+	(SELECT t1.userid, sum(length(message)) as msgchars FROM {forum_posts} t1
+LEFT JOIN {forum_discussions} t2
 	ON t2.id = t1.discussion
 	WHERE t2.groupid = '.$currentgroup.' AND length(message) > '.$message->size_small.' 
 	GROUP BY t1.userid) t1
@@ -1051,10 +1051,10 @@ function checkImportedParticpation($currentgroup, $alerts){
 	$averages = $DB->get_record_sql('SELECT avg(coalesce(t3.msgchars,0)) as avgmsgsize
 	FROM
 	(SELECT user_id, coalesce(length(message),0) as msgchars FROM
-	(SELECT userid FROM `mdl_groups_members` WHERE groupid = '.$currentgroup.') t0
-	 LEFT JOIN `mdl_project_user_mapping`  t1
+	(SELECT userid FROM {groups_members} WHERE groupid = '.$currentgroup.') t0
+	 LEFT JOIN {project_user_mapping}  t1
 	ON t0.userid = t1.user_id
-	LEFT JOIN `mdl_project_history_imp_detail` t2
+	LEFT JOIN {project_history_imp_detail} t2
 	 ON t2.user = t1.skype
 	 WHERE group_id = '.$currentgroup.'
 	 ) t3');
@@ -1067,35 +1067,35 @@ function checkImportedParticpation($currentgroup, $alerts){
 		
 	$charCount = new stdClass();
 	$charCount = $DB->get_records_sql('SELECT userid, coalesce(Schar,0) as Schar, coalesce(Mchar,0) as Mchar, coalesce(Lchar,0) as Lchar, coalesce(Tchar,0) as Tchar FROM
-	(SELECT userid FROM `mdl_groups_members` WHERE groupid = '.$currentgroup.' ) t0
+	(SELECT userid FROM {groups_members} WHERE groupid = '.$currentgroup.' ) t0
 	LEFT JOIN
 	(SELECT user_id, sum(length(message)) as Schar FROM
-	`mdl_project_history_imp_detail`  t1
-	LEFT JOIN `mdl_project_user_mapping` t2
+	{project_history_imp_detail}  t1
+	LEFT JOIN {project_user_mapping} t2
 	 ON t1.user = t2.skype
 	 WHERE group_id = '.$currentgroup.' AND length(message) < '.$message->size_small.' 
 	 GROUP BY user_id) t3
 	 ON t0.userid = t3.user_id
 	 LEFT JOIN
 	(SELECT user_id, sum(length(message)) as Mchar FROM
-	`mdl_project_history_imp_detail`  t4
-	LEFT JOIN `mdl_project_user_mapping` t5
+	{project_history_imp_detail}  t4
+	LEFT JOIN {project_user_mapping} t5
 	 ON t4.user = t5.skype
 	 WHERE group_id = '.$currentgroup.' AND length(message) BETWEEN '.$message->size_small.'  AND '.$message->size_large.' 
 	 GROUP BY user_id) t6
 	 ON t0.userid = t6.user_id
 	  LEFT JOIN
 	(SELECT user_id, sum(length(message)) as Lchar FROM
-	`mdl_project_history_imp_detail`  t7
-	LEFT JOIN `mdl_project_user_mapping` t8
+	{project_history_imp_detail}  t7
+	LEFT JOIN {project_user_mapping} t8
 	 ON t7.user = t8.skype
 	 WHERE group_id = '.$currentgroup.' AND length(message) > '.$message->size_large.' 
 	 GROUP BY user_id) t9
 	 ON t0.userid = t9.user_id
 	  LEFT JOIN
 	(SELECT user_id, sum(length(message)) as Tchar FROM
-	`mdl_project_history_imp_detail`  t10
-	LEFT JOIN `mdl_project_user_mapping` t11
+	{project_history_imp_detail}  t10
+	LEFT JOIN {project_user_mapping} t11
 	 ON t10.user = t11.skype
 	 WHERE group_id = '.$currentgroup.' AND length(message) >= '.$message->size_small.' 
 	 GROUP BY user_id) t12
@@ -1105,10 +1105,10 @@ function checkImportedParticpation($currentgroup, $alerts){
 	$stats = $DB->get_record_sql('SELECT sum(coalesce(t3.msgchars,0)) as sum
 		FROM
 		(SELECT user_id, coalesce(length(message),0) as msgchars FROM
-		(SELECT userid FROM `mdl_groups_members` WHERE groupid = '.$currentgroup.') t0
-		 LEFT JOIN `mdl_project_user_mapping`  t1
+		(SELECT userid FROM {groups_members} WHERE groupid = '.$currentgroup.') t0
+		 LEFT JOIN {project_user_mapping}  t1
 		ON t0.userid = t1.user_id
-		LEFT JOIN `mdl_project_history_imp_detail` t2
+		LEFT JOIN {project_history_imp_detail} t2
 		 ON t2.user = t1.skype
 		 WHERE group_id = '.$currentgroup.'
 		 ) t3');
@@ -1210,7 +1210,7 @@ function populate_completed_groups_cron(){
 	//Get the course id for grade records
 	$grade_id = $DB->get_record('grade_items', array('courseid'=>$project->course,'itemtype'=>'course'), 'id')->id;
 	//Get the users who have a final grade
-	$users_grade = $DB->get_records_sql('SELECT userid,finalgrade FROM mdl_grade_grades WHERE itemid = :itemid', array('itemid' => $grade_id));
+	$users_grade = $DB->get_records_sql('SELECT userid,finalgrade FROM {grade_grades} WHERE itemid = :itemid', array('itemid' => $grade_id));
 		if(empty($users_grade)) { //If no grades exist,
 			trace('No grades...exiting...');
 			break;
@@ -1243,10 +1243,10 @@ function populate_completed_groups_cron(){
 	
 		foreach($new_groups as $group=>$grade){
 			if($grade<51){
-				$DB->execute('INSERT INTO mdl_project_completed_groups (course_id, group_id, pass, lastmodified) VALUES ('.$project->course.', '.$group.', 0, '.time().')');
+				$DB->execute('INSERT INTO {project_completed_groups} (course_id, group_id, pass, lastmodified) VALUES ('.$project->course.', '.$group.', 0, '.time().')');
 				}
 			else {
-				$DB->execute('INSERT INTO mdl_project_completed_groups (course_id, group_id, pass, lastmodified) VALUES ('.$project->course.', '.$group.', 1, '.time().')');
+				$DB->execute('INSERT INTO {project_completed_groups} (course_id, group_id, pass, lastmodified) VALUES ('.$project->course.', '.$group.', 1, '.time().')');
 			}
 		}//end for each
 	
@@ -1272,7 +1272,7 @@ function checkChatAlerts($chatuser, $courseid){
 FROM (
     SELECT distinct A.userid, coalesce(sum(LENGTH(message)),0) as message_char FROM `mdl_groups_members` A LEFT JOIN `mdl_chat_messages` B ON A.userid = B.userid  WHERE A.groupid = '.$currentgroup.' AND system = 0
 GROUP BY userid) C');*/
-	$averages = $DB->get_record_sql('SELECT avg(LENGTH(message)) as avgmessage_char FROM `mdl_chat_messages_current` WHERE groupid =  '.$currentgroup.' AND system = 0')->avgmessage_char;
+	$averages = $DB->get_record_sql('SELECT avg(LENGTH(message)) as avgmessage_char FROM {chat_messages_current} WHERE groupid =  '.$currentgroup.' AND system = 0')->avgmessage_char;
 
 	$message_size = new stdClass();
 	$message_size->small =  $averages*$config->smallmsg;
@@ -1284,29 +1284,29 @@ GROUP BY userid) C');*/
 	$charCount = new stdClass();
 	$query='SELECT t4.userid, coalesce(t5.Schars,0) as Schars, coalesce(t1.Mchars,0) as Mchars, coalesce(t2.Lchars,0) as Lchars, coalesce(t3.Tchars,0) as Tchars
 FROM
-	(SELECT userid FROM `mdl_groups_members`
+	(SELECT userid FROM {groups_members}
      WHERE groupid = '.$currentgroup.' ) t4
 LEFT JOIN
 	(SELECT userid, SUM(LENGTH(message)) as Mchars
-	FROM `mdl_chat_messages_current`
+	FROM {chat_messages_current}
 	WHERE groupid = '.$currentgroup.'  AND system = 0 AND LENGTH(message) BETWEEN '.$message_size->small.' AND '.$message_size->large.'
 	GROUP BY userid) t1
 ON t4.userid = t1.userid
 LEFT JOIN
 	(SELECT userid, SUM(LENGTH(message)) as Lchars
-	FROM `mdl_chat_messages_current`
+	FROM {chat_messages_current}
 	WHERE groupid = '.$currentgroup.'  AND system = 0 AND LENGTH(message) >  '.$message_size->large.'
 	GROUP BY userid) t2
 ON t1.userid = t2.userid
 LEFT JOIN
 	(SELECT userid, SUM(LENGTH(message)) as Tchars
-	FROM `mdl_chat_messages_current`
+	FROM {chat_messages_current}
 	WHERE groupid = '.$currentgroup.'  AND system = 0 AND LENGTH(message) > '.$message_size->small.'
 	GROUP BY userid )t3
 ON t1.userid = t3.userid
 LEFT JOIN
 	(SELECT userid, SUM(LENGTH(message)) as Schars
-	FROM `mdl_chat_messages_current`
+	FROM {chat_messages_current}
 	WHERE groupid = '.$currentgroup.'  AND system = 0 AND LENGTH(message) < '.$message_size->small.'
 	GROUP BY userid )t5
 ON t4.userid = t5.userid';
@@ -1314,7 +1314,7 @@ ON t4.userid = t5.userid';
 	$charCount = $DB->get_records_sql($query);
 
 	$stats = new stdClass();
-	$stats = $DB->get_record_sql('SELECT SUM(LENGTH(message)) as Sum FROM `mdl_chat_messages_current` WHERE groupid = '.$currentgroup.'  AND system = 0 AND LENGTH(message) >  '.$message_size->small);
+	$stats = $DB->get_record_sql('SELECT SUM(LENGTH(message)) as Sum FROM {chat_messages_current} WHERE groupid = '.$currentgroup.'  AND system = 0 AND LENGTH(message) >  '.$message_size->small);
 	$stats->avg = $stats->sum/count($charCount);
 	$stats->low = $stats->avg * $config->lowthreshold;
 	$stats->high = $stats->avg * $config->highthreshold;

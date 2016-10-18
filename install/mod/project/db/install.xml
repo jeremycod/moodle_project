@@ -92,7 +92,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="5" NOTNULL="true" SEQUENCE="true"/>
 		<FIELD NAME="message_id" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="time" TYPE="int" LENGTH="11" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="user" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="user_name" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="message" TYPE="text" LENGTH="10000" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

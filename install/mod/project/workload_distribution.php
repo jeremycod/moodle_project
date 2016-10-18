@@ -77,35 +77,38 @@ $equal_hours = $total_hours/count($member_rank);
 
 $html = "Individual Recommended Hours: ".round($equal_hours,2)." Hours<br /><br />";
 
-//If large variance occurs, display column for table
-if(AlertWorkloadDistribution($currentgroup))
-	$html .= "<table style='border:1px solid black;'><tr style='background-color:lightgrey;'><th>Member</th><th>Assigned Hours</th><th>% of Workload</th><th>Variance</th></tr>";
-else
-	$html .= "<table style='border:1px solid black;'><tr style='background-color:lightgrey;'><th>Member</th><th>Assigned Hours</th><th>% of Workload</th><th></th></tr>";
-	
-foreach($member_rank as $key=>$member){
-	if($key==$USER->id) //Bold the current student
-		$html .= "<tr><td><b>".studentidToLMS_Name($key)."</b></td>";
-	else
-		$html .= "<tr><td>".studentidToLMS_Name($key)."</td>";
-	$html .= "<td style='text-align:center;'>".$member."</td>";
-	$html .= "<td style='text-align:center;'''>".round($member/$total_hours*100,2)."</td>";
-	if(!empty(MemberWorkloadDistribution($member, $equal_hours))) //If distribution occus, display variance and icon.
-		$html .= "<td style='text-align:center;color:crimson;'>".MemberWorkloadDistribution($member, $equal_hours)."  <img src='pix/alert_icon.png'' width='12px' height='12px'/></td>";
-	else
-		$html .= "<td></td>";
-	$html .= "</tr>";
-}
+    //If large variance occurs, display column for table
+    if(AlertWorkloadDistribution($currentgroup))
+        $html .= "<table style='border:1px solid black;'><tr style='background-color:lightgrey;'><th>Member</th><th>Assigned Hours</th><th>% of Workload</th><th>Variance</th></tr>";
+    else
+        $html .= "<table style='border:1px solid black;'><tr style='background-color:lightgrey;'><th>Member</th><th>Assigned Hours</th><th>% of Workload</th><th></th></tr>";
 
-$html .= "<td><u>Total</u></td><td style='text-align:center;'>".$total_hours."</td><td style='text-align:center;'>".round($total_hours/$total_hours*100,2)."</td><td></td></tr>";
-$html .= "</table>";
-}
-else //else, no tasks are created, display generic message.
-	$html = "There are currently no tasks created. Please create a task and view workload distribution again.";
-$content = $html;
-//$content = format_text($content, $project->contentformat, $formatoptions);
-echo $OUTPUT->box($content, "generalbox center clearfix");
+    foreach($member_rank as $key=>$member){
+        if($key==$USER->id) //Bold the current student
+            $html .= "<tr><td><b>".studentidToLMS_Name($key)."</b></td>";
+        else
+            $html .= "<tr><td>".studentidToLMS_Name($key)."</td>";
+        $html .= "<td style='text-align:center;'>".$member."</td>";
+        $html .= "<td style='text-align:center;'>".round($member/$total_hours*100,2)."</td>";
 
-add_to_log($course->id, 'project', 'workload dist', 'workload_distribution.php?id='.$cmid, $p);
+        $wl=MemberWorkloadDistribution($member, $equal_hours);
+        if(isset($wl)) //If distribution occus, display variance and icon.
+            $html .= "<td style='text-align:center;color:crimson;'>".$wl."  <img src='pix/alert_icon.png' width='12px' height='12px'/></td>";
+        else
+            $html .= "<td></td>";
+        $html .= "</tr>";
+    }
+
+    $html .= "<td><u>Total</u></td><td style='text-align:center;'>".$total_hours."</td><td style='text-align:center;'>".round($total_hours/$total_hours*100,2)."</td><td></td></tr>";
+    $html .= "</table>";
+
+    }
+    else //else, no tasks are created, display generic message.
+        $html = "There are currently no tasks created. Please create a task and view workload distribution again.";
+    $content = $html;
+    //$content = format_text($content, $project->contentformat, $formatoptions);
+    echo $OUTPUT->box($content, "generalbox center clearfix");
+
+    add_to_log($course->id, 'project', 'workload dist', 'workload_distribution.php?id='.$cmid, $p);
 
 echo $OUTPUT->footer();

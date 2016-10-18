@@ -52,7 +52,7 @@ class project_jobs extends prototype_jobs{
 
         ///Finished triggering new event
 
-          checkAlerts($USER->id, getGroupID($USER->id, $courseid));
-        $this->log->debug("FINISHED CHECKING ALERTS IN PROJECT:".$courseid);
+        //  checkAlerts($USER->id, getGroupID($USER->id, $courseid));
+       // $this->log->debug("FINISHED CHECKING ALERTS IN PROJECT:".$courseid);
     }
 }

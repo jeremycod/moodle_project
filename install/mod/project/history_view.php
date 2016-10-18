@@ -80,7 +80,7 @@ if($history_summary->method=="Skype"){
 	$html .= '<table><tr><td>Time</td><td>User</td><td>Message</td></tr>';
 	foreach($history as $record){
 		//$student_name = getStudentName($record->user);
-		$html .= '<tr><td>'.userdate($record->time, get_string('strftimedatetimeshort', 'langconfig')).'</td><td>'.$record->user.'</td><td>'.$record->message.'</td></tr>';
+		$html .= '<tr><td>'.userdate($record->time, get_string('strftimedatetimeshort', 'langconfig')).'</td><td>'.$record->user_name.'</td><td>'.$record->message.'</td></tr>';
 	}
 
 	$html .= '</table>';
