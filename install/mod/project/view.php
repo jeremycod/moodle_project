@@ -202,7 +202,7 @@ $html .= "<table><tr><td><u>Group Members</u></td><td><u>Last Online</u></td></t
 	}
 	//More communication links, forums, chats, imports
 	$html .= "</table><table><tr><td><u>Communication Tools</u></td></tr>";
-    $chatmoduleid=$DB->get_field('module', 'id', array('name'=> 'chat'));
+    $chatmoduleid=$DB->get_field('modules', 'id', array('name'=> 'chat'));
 	if($chat = $DB->get_record('course_modules', array('module'=>$chatmoduleid, 'course'=>$COURSE->id, 'groupmode'=>1), 'id,instance')){
     if (! $chat = $DB->get_record('chat', array('id'=>$chat->instance))) {
         print_error('invalidid', 'chat');
