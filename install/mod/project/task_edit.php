@@ -193,7 +193,6 @@ if ($mform->is_cancelled()) {
 
         }//end if
         else { //it already exists, so lets update it
-            echo "KT-21";
             $previous->progress_percentage = $progress[0];
             $previous->time_percentage = $progress[1];
 

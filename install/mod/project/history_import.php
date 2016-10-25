@@ -148,7 +148,7 @@ if ($mform->is_cancelled()) {
 			//echo $line."<br/>";
 			preg_match_all("/\[([^\]|\|]*)/", $line, $time); //Seperate the time from the line ( Between [ and ] ) REGEX: /\[([^\]]*)\]/
 			$line = preg_replace("/\[([^\]]*)\]/", "", $line);
-            echo "TIME:".json_encode($time)." for LINE:".json_encode($line);
+           // echo "TIME:".json_encode($time)." for LINE:".json_encode($line);
 			if(!empty($time[1][0])){
 				$time = strtotime($time[1][0]); //Save the time as a unix timestamp
 			} else {

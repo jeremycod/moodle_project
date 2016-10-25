@@ -436,7 +436,8 @@ function displayForums(){
 
 	//If Forums are setup for Groups, display links to them.
 	$html = '';
-	if($forum = $DB->get_records('course_modules', array('module'=>9,  'course'=>$COURSE->id, 'groupmode'=>1), 'id,instance')){
+    $forummoduleid=$DB->get_field('modules', 'id', array('name'=> 'forum'));
+	if($forum = $DB->get_records('course_modules', array('module'=>$forummoduleid,  'course'=>$COURSE->id, 'groupmode'=>1), 'id,instance')){
 		foreach($forum as $forum_link){
 			$forum_name = $DB->get_record('forum', array('id'=>$forum_link->instance), 'name');
 			$html .= ' <tr><td><img src="'.$CFG->wwwroot.'/mod/forum/pix/icon.png" width="16px" height="16px"> <a href="'.$CFG->wwwroot.'\mod\forum\view.php?id='.$forum_link->id.'">'.$forum_name->name.'</a></td></tr>';
@@ -454,7 +455,6 @@ function displayForums(){
  */
 function fillUsers($courseid, $currentgroup){
 	global $DB;
-	echo "<br/>TEST fillUsers";
 	//First, check to see if there is any users already there
 	$mapped_users = $DB->get_records('project_user_mapping', array('course_id'=>$courseid,'group_id'=>$currentgroup), null, 'user_id');
 	//If no users are returned, array is empty, fill it with group members id's.
