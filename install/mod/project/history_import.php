@@ -61,22 +61,26 @@ $history = new stdClass();
 $summary = new stdClass();
 $history->id         = null;
 $history->cmid = $cm->id;
-
+$log->debug("IMPORTING HISTORY KT-1");
 $mform = new history_import_form(null, array('project'=>$project, 'history'=>$history));
 if(isset($_POST['map_users'])){
+    $log->debug("IMPORTING HISTORY KT-2");
 	//var_dump($_POST);break;
 	foreach($_POST as $key=>$value){
 		$log->debug("POST:".$key." value:".json_encode($value));
 		if((substr($key,0,11) == 'member_map-') ){
 			$member_map = substr($key, 12);//Get the student id from the end of the key value
-			$student = $DB->get_record('project_user_mapping', array('user_id'=>$member_map)); //Get student information from the user_map
-			$student->skype = preg_replace('/_/', ' ', $value); //Replace any _ with a space
-			if(!empty($student->skype)){
-			//Update the skype field with the skype username
-			$DB->set_field('project_user_mapping', 'skype', $student->skype, array('user_id'=>$student->user_id,'course_id'=>$student->course_id, 'group_id'=>$student->group_id));
-			//update meetings attended to the first one.
-			$DB->set_field('project_user_mapping', 'meetings_attended', 1, array('user_id'=>$student->user_id,'course_id'=>$student->course_id, 'group_id'=>$student->group_id));
-			}//end if skype name empty
+            $log->debug("KT-2.1:member map:".$member_map);
+			if($student = $DB->get_record('project_user_mapping', array('course_id'=>$course->id,'group_id'=>$currentgroup,'user_id'=>$member_map))) { //Get student information from the user_map
+                $student->skype = preg_replace('/_/', ' ', $value); //Replace any _ with a space
+                $log->debug("KT-2.2:".json_encode($student));
+                if (!empty($student->skype)) {
+                    //Update the skype field with the skype username
+                    $DB->set_field('project_user_mapping', 'skype', $student->skype, array('user_id' => $student->user_id, 'course_id' => $student->course_id, 'group_id' => $student->group_id));
+                    //update meetings attended to the first one.
+                    $DB->set_field('project_user_mapping', 'meetings_attended', 1, array('user_id' => $student->user_id, 'course_id' => $student->course_id, 'group_id' => $student->group_id));
+                }//end if skype name empty
+            }
 		}//end if
 		else if($key=='history_records'){
 			$history_records=json_decode($value);
@@ -106,12 +110,16 @@ if(isset($_POST['map_users'])){
 	$event->trigger();
 	redirect("view.php?id=$cm->id");
 }
+$log->debug("IMPORTING HISTORY KT-3");
 $history_records=array();
 // If data submitted, then process and store.
 if ($mform->is_cancelled()) {
+    $log->debug("IMPORTING HISTORY KT-4");
 	redirect("view.php?id=$cm->id");
 } else if ($data = $mform->get_data()) {
+    $log->debug("IMPORTING HISTORY KT-5:data:".json_encode($data));
     if ($data->id) {
+        $log->debug("IMPORTING HISTORY KT-5.1");
         // store the files
         $data->timemodified = time();
         //$data = file_postupdate_standard_editor($data, 'content', $options, $context, 'mod_project', 'task', $data->id);
@@ -121,6 +129,7 @@ if ($mform->is_cancelled()) {
         //add_to_log($course->id, 'course', 'update mod', '../mod/project/view.php?id='.$cm->id, 'project '.$project->id);
 
     } else {
+        $log->debug("IMPORTING HISTORY KT-5.2");
         // adding new history
         $data->historyid        = $history->id;
 		
@@ -129,12 +138,13 @@ if ($mform->is_cancelled()) {
 		$summary->date = time();
 		$methods = array('Skype', 'Email');
 		$summary->method = $methods[$data->method];
-		
+        $log->debug("IMPORTING HISTORY KT-5.2.1 summary:".json_encode($summary));
 		//insert summary record
 		$data->id = $DB->insert_record('project_history_imp_summary', $summary);
 
 		//If History import is Skype
 		if($summary->method=="Skype"){
+            $log->debug("IMPORTING HISTORY KT-5.2.2");
 		//Create a multidim array for each record in history
 		$names_unique = array();
 		$names_unique[''] = "";
@@ -144,7 +154,8 @@ if ($mform->is_cancelled()) {
 		if(($key = array_search('SYSTEM', $names_unique)) !== false) {
 			unset($names_unique[$key]);
 		}
-		foreach(preg_split("/((\r?\n)|(\r\n?))/", $data->history) as $line){ //Iterate through each line imported by skype
+            $log->debug("IMPORTING HISTORY KT-5.2.3");
+            foreach(preg_split("/((\r?\n)|(\r\n?))/", $data->history) as $line){ //Iterate through each line imported by skype
 			//echo $line."<br/>";
 			preg_match_all("/\[([^\]|\|]*)/", $line, $time); //Seperate the time from the line ( Between [ and ] ) REGEX: /\[([^\]]*)\]/
 			$line = preg_replace("/\[([^\]]*)\]/", "", $line);
@@ -187,13 +198,13 @@ if ($mform->is_cancelled()) {
 			$history_records[]=clone $history;
 			//echo "<br/>ARRAY:".json_encode($history_records);
 		}//end for each loop
-		
-		//Remove the SYSTEM user since it will never be assigned.
+            $log->debug("IMPORTING HISTORY KT-5.2.4");
+            //Remove the SYSTEM user since it will never be assigned.
 		if(($key = array_search("SYSTEM", $names_unique)) !== false) {
 			unset($names_unique[$key]);
 		}//end if
-		
-		//Add 1 meeting attended for each user who attended a meeting, and 1 for the whole group
+            $log->debug("IMPORTING HISTORY KT-5.2.5");
+            //Add 1 meeting attended for each user who attended a meeting, and 1 for the whole group
 		foreach($names_unique as $key=>$user){
 			$attended = $DB->get_record('project_user_mapping', array('skype'=>$user), 'id,group_id,meetings_attended');
 			if(!$attended)
@@ -203,8 +214,8 @@ if ($mform->is_cancelled()) {
 			$DB->set_field('project_user_mapping', 'meetings_attended', ++$inc, array('skype'=>$user));
 			}
 		}
-
-		$mapped = true;
+            $log->debug("IMPORTING HISTORY KT-5.2.6");
+            $mapped = true;
 		}//End if method is skype
 		//If history method is email.
 		else if($summary->method=="Email") {
@@ -224,7 +235,9 @@ if ($mform->is_cancelled()) {
 	//redirect("history_import.php?cmid=$cm->id&mapped=true");
 	
 }
+$log->debug("IMPORTING HISTORY KT-6");
 if($mapped){
+    $log->debug("IMPORTING HISTORY KT-7:course:".$course->id." group:".$currentgroup);
 	//Check if names are in mapped table.
 	//Get mapped users
 	$mapped_users = $DB->get_records('project_user_mapping', array('course_id'=>$course->id,'group_id'=>$currentgroup));
@@ -241,32 +254,34 @@ if($mapped){
 		}
 		$mapped_users = $DB->get_records('project_user_mapping', array('course_id'=>$course->id,'group_id'=>$currentgroup)); //Recall the users
 	}
-	
+    $log->debug("IMPORTING HISTORY KT-7.1");
 	$unmapped = 0;
 	foreach($mapped_users as $user){
+        $log->debug("IMPORTING HISTORY KT-7.1 userskype:".json_encode($user));
 		if(empty($user->skype)){
 			$unmapped++;
 		}
 	}
-
+    $log->debug("IMPORTING HISTORY KT-7.2");
 	//Increament Total Meetings for all users after skype has been imported
 	$total_meetings = $DB->get_records('project_user_mapping', array('group_id'=>$currentgroup), null, 'group_id,meetings_total', 0, 1);
 	$inc_total =  $total_meetings[$currentgroup]->meetings_total;
 	$DB->set_field('project_user_mapping', 'meetings_total', ++$inc_total, array('group_id'=>$currentgroup));
 	//reset users meeting alert
 	$DB->set_field('project_user_mapping', 'meeting_alert', 0, array('group_id'=>$currentgroup));
-
+    $log->debug("IMPORTING HISTORY KT-7.3: ");
 	//If all all mapped, redirect page, skipping form
 	if(!$unmapped){
 		redirect('view.php?id='.$cmid);
 	}
-	
+    $log->debug("IMPORTING HISTORY KT-7.4");
 	$user_map = array(); //Create the array
 	$user_map[0] = ""; //Add Blank option
 	foreach($mapped_users as $member){ //Fill the array with usernames
 		$user_map[$member->user_id] = studentidToName($member->user_id);
 	}//end for each
 	$mapped_form = new history_map_users(null, array('group_members'=>$user_map,'convo_members'=>$names_unique,'history'=>$history, 'history_records'=>json_encode($history_records)));
+    $log->debug("IMPORTING HISTORY KT-7.5");
 /*	if ($mapped_form->is_cancelled()) {
 		echo "Mform is canceled";
 		$log->debug("Mform is canceled");
@@ -298,7 +313,7 @@ if($mapped){
 	$event->add_morph_other_data('config',$projectconfig);
 	$event->trigger();*/
 }
-
+$log->debug("IMPORTING HISTORY KT-8");
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string('Chat History Import'), 2);
 

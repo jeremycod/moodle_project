@@ -17,7 +17,7 @@
 
 /**
  * @package    mod
- * @subpackage page
+ * @subpackage project
  * @copyright  2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -25,13 +25,13 @@
 defined('MOODLE_INTERNAL') || die;
 
 /**
- * Define all the backup steps that will be used by the backup_page_activity_task
+ * Define all the backup steps that will be used by the backup_project_activity_task
  */
 
 /**
- * Define the complete page structure for backup, with file and id annotations
+ * Define the complete project structure for backup, with file and id annotations
  */
-class backup_page_activity_structure_step extends backup_activity_structure_step {
+class backup_project_activity_structure_step extends backup_activity_structure_step {
 
     protected function define_structure() {
 
@@ -39,25 +39,27 @@ class backup_page_activity_structure_step extends backup_activity_structure_step
         $userinfo = $this->get_setting_value('userinfo');
 
         // Define each element separated
-        $page = new backup_nested_element('page', array('id'), array(
-            'name', 'intro', 'introformat', 'content', 'contentformat',
-            'legacyfiles', 'legacyfileslast', 'display', 'displayoptions',
-            'revision', 'timemodified'));
+        $project = new backup_nested_element('project', array('id'), array(
+            'course', 'name', 'intro', 'introformat', 'legacyfiles', 'legacyfileslast',
+            'display', 'displayoptions', 'revision', 'timemodified'));
+           // 'name', 'intro', 'introformat', 'content', 'contentformat',
+            //'legacyfiles', 'legacyfileslast', 'display', 'displayoptions',
+           // 'revision', 'timemodified'));
 
         // Build the tree
         // (love this)
 
         // Define sources
-        $page->set_source_table('page', array('id' => backup::VAR_ACTIVITYID));
+        $project->set_source_table('project', array('id' => backup::VAR_ACTIVITYID));
 
         // Define id annotations
         // (none)
 
         // Define file annotations
-        $page->annotate_files('mod_page', 'intro', null); // This file areas haven't itemid
-        $page->annotate_files('mod_page', 'content', null); // This file areas haven't itemid
+        $project->annotate_files('mod_project', 'intro', null); // This file areas haven't itemid
+      //  $project->annotate_files('mod_project', 'content', null); // This file areas haven't itemid
 
-        // Return the root element (page), wrapped into standard activity structure
-        return $this->prepare_activity_structure($page);
+        // Return the root element (project), wrapped into standard activity structure
+        return $this->prepare_activity_structure($project);
     }
 }

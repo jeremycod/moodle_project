@@ -23,39 +23,39 @@
  */
 
 /**
- * Define all the restore steps that will be used by the restore_page_activity_task
+ * Define all the restore steps that will be used by the restore_project_activity_task
  */
 
 /**
- * Structure step to restore one page activity
+ * Structure step to restore one project activity
  */
-class restore_page_activity_structure_step extends restore_activity_structure_step {
+class restore_project_activity_structure_step extends restore_activity_structure_step {
 
     protected function define_structure() {
 
         $paths = array();
-        $paths[] = new restore_path_element('page', '/activity/page');
+        $paths[] = new restore_path_element('project', '/activity/project');
 
         // Return the paths wrapped into standard activity structure
         return $this->prepare_activity_structure($paths);
     }
 
-    protected function process_page($data) {
+    protected function process_project($data) {
         global $DB;
 
         $data = (object)$data;
         $oldid = $data->id;
         $data->course = $this->get_courseid();
 
-        // insert the page record
-        $newitemid = $DB->insert_record('page', $data);
+        // insert the project record
+        $newitemid = $DB->insert_record('project', $data);
         // immediately after inserting "activity" record, call this
         $this->apply_activity_instance($newitemid);
     }
 
     protected function after_execute() {
-        // Add page related files, no need to match by itemname (just internally handled context)
-        $this->add_related_files('mod_page', 'intro', null);
-        $this->add_related_files('mod_page', 'content', null);
+        // Add project related files, no need to match by itemname (just internally handled context)
+        $this->add_related_files('mod_project', 'intro', null);
+      //  $this->add_related_files('mod_project', 'content', null);
     }
 }
