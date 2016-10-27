@@ -353,10 +353,10 @@ function studentidToLMS_Name($userid){
  * @param int currentgroup
  * return object of task end dates
  */
-function getGroupsTasks($currentgroup){
+function getGroupsTasks($currentgroup,$projectid){
 	global $DB;
 	
-	return $DB->get_records('project_task', array('group_id'=>$currentgroup), 'end_date');	
+	return $DB->get_records('project_task', array('group_id'=>$currentgroup, 'project_id'=>$projectid), 'end_date');
 }
 
 /**
@@ -387,10 +387,9 @@ function getMembersLastAccess($studentid, $courseid){
  * @param int groupid
  * return object of chat summaries
  */
-function getGroupChatHistory($currentgroup) {
+function getGroupChatHistory($currentgroup,$projectid) {
 	global $DB;
-	
-	return $DB->get_records('project_history_imp_summary', array('group_id' =>$currentgroup));
+	return $DB->get_records('project_history_imp_summary', array('group_id' =>$currentgroup, 'project_id'=>$projectid));
 }
 
 /**
@@ -477,11 +476,11 @@ function fillUsers($courseid, $currentgroup){
  * @param int currentgroup
  * return array of rank members by work allocation
  */
-function RankMembersTasksDistribution($currentgroup){
+function RankMembersTasksDistribution($currentgroup,$projectid){
 	global $DB;
 	
 	$groups_members = $DB->get_records('groups_members', array('groupid'=>$currentgroup)); //Get the members of a current group
-	$tasks = $DB->get_records('project_task', array('group_id'=>$currentgroup), '', 'id,members,hours'); //Get the tasks assigned to a group, return an array of task id, members assigned, and total hours
+	$tasks = $DB->get_records('project_task', array('group_id'=>$currentgroup, 'project_id'=>$projectid), '', 'id,members,hours'); //Get the tasks assigned to a group, return an array of task id, members assigned, and total hours
 
 	//Iterate all members in a group
 	$total_hours = 0;
@@ -527,12 +526,12 @@ function MemberWorkloadDistribution($hours, $equal_hours){
 * Function Takes the group# and determines members ranks.
 *  Returns true when a member is found to be unbalanced.
 */
-function AlertWorkloadDistribution($group){
+function AlertWorkloadDistribution($group,$projectid){
 	global $DB;
 	
 	$course = $DB->get_record('groups',array('id'=>$group),'courseid')->courseid;
 
-	$member_rank = RankMembersTasksDistribution($group);
+	$member_rank = RankMembersTasksDistribution($group,$projectid);
 
 	//Get the total number of hours based on each student
 	$total_hours = array_sum($member_rank);
@@ -555,11 +554,11 @@ function AlertWorkloadDistribution($group){
 * Function takes group# and determines the progress%
 * Returns the progress % and time %
 */
-function getCurrentGroupProgress($group){
+function getCurrentGroupProgress($group,$projectid){
 	global $DB;
 
 	$hours_complete = $total_hours = $start = $end = 0;
-	$tasks = $DB->get_records('project_task', array('group_id'=>$group), '', 'id,name,hours,progress,start_date,end_date');
+	$tasks = $DB->get_records('project_task', array('group_id'=>$group, 'project_id'=>$projectid), '', 'id,name,hours,progress,start_date,end_date');
 	if(!$tasks)
 		return "0/0";
 	
@@ -650,10 +649,12 @@ function checkPreviousCohorts($course, $currentgroup){
 	//See if values exist in table, otherwise we don't continue the check
 	if($DB->count_records('project_previous_cohorts')==0)
 		return;
+//Get the project ID for the future link
+    $projectid = $DB->get_record_sql('SELECT id FROM {course_modules} WHERE module = (SELECT id FROM {modules} WHERE name = \'project\') AND course = :course ', array('course'=>$course->id))->id;
 
 	$grades = array(); //Array to store all the users and grades
 	$avg_grades= array(); //Array to store all the average grades with keys being group id's.
-	$progress = explode('/', getCurrentGroupProgress($currentgroup)); //Get the current group progress that is returned by "work/time", seperate the two variables
+	$progress = explode('/', getCurrentGroupProgress($currentgroup,$projectid)); //Get the current group progress that is returned by "work/time", seperate the two variables
 	//save the progress in the table
 	$record = new stdClass();
 	$record->group_id = $currentgroup;
@@ -707,8 +708,6 @@ function checkPreviousCohorts($course, $currentgroup){
 	//Determine if a group is at risk of failure
 
 	
-	//Get the project ID for the future link
-	$projectid = $DB->get_record_sql('SELECT id FROM {course_modules} WHERE module = (SELECT id FROM {modules} WHERE name = \'project\') AND course = :course ', array('course'=>$course->id))->id;
 
 	//If a current groups progress is greater than the maximum failure, there is no risk.  (Very High)
 	if($record->progress_percentage > $max_failed){

@@ -74,7 +74,7 @@ $html = "<table><tr><th>Group</th><th>% Complete</th></tr>";
 $group_rank = array();
 foreach($groups as $group){ //Iterate through each group in the course
 	$hours_complete = $total_hours = $start = $end = 0; //Initalize all variables to 0.
-	$tasks = $DB->get_records('project_task', array('group_id'=>$group->id), '', 'id,name,hours,progress,start_date,end_date');
+	$tasks = $DB->get_records('project_task', array('group_id'=>$group->id, 'project_id'=>$project->id), '', 'id,name,hours,progress,start_date,end_date');
 	foreach($tasks as $task){
 		//Find the earliest start time, not set OR new start is sooner
 		if($start==0 || $task->start_date<$start){

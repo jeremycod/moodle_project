@@ -54,7 +54,7 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_activity_record($project);
 
 if($d && $id) {
-	$DB->delete_records('project_task', array('id'=>$id, 'group_id'=>$currentgroup));
+	$DB->delete_records('project_task', array('id'=>$id, 'group_id'=>$currentgroup, 'project_id'=>$project->id));
 	redirect("view.php?id=".$cmid);
 }
 
@@ -92,6 +92,7 @@ if ($mform->is_cancelled()) {
 		$members_position++;
 	}
 	$data->members = $memberslist; //Set new members property to overwrite the array to store.
+    $data->project_id=$project->id;
 
     if ($data->id) {
         // store the files
@@ -129,6 +130,7 @@ if ($mform->is_cancelled()) {
     } else {
         // adding new task
         $data->taskid        = $task->id;
+        $data->project_id     = $project->id;
         $data->hidden        = 0;
         $data->timecreated   = time();
         $data->timemodified  = time();
@@ -162,7 +164,7 @@ if ($mform->is_cancelled()) {
 	$previous = new stdClass();
 	$previous->group_id = $currentgroup;
 
-	$progress = explode('/', getCurrentGroupProgress($currentgroup)); //Get the current group progress that is returned by "work/time", seperate the two variables
+	$progress = explode('/', getCurrentGroupProgress($currentgroup,$project->id)); //Get the current group progress that is returned by "work/time", seperate the two variables
 	//Get the last value stored to find the missing progress values
 	//if($count = $DB->count_records('project_previous_cohorts') != 0)
   	$last_progress = $DB->get_record_sql('SELECT progress_percentage,time_percentage FROM {project_previous_cohorts} WHERE group_id = :group_id  ORDER BY progress_percentage DESC LIMIT 1', array('group_id' => $currentgroup));

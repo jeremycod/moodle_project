@@ -113,8 +113,8 @@ $members = array();
 $tasks = array();
 $members = getGroupMembers($currentgroup); //Get group members of the group, ID's and last access
 
-$tasks = getGroupsTasks($currentgroup); 
-$history = getGroupChatHistory($currentgroup); //Get Group chat history
+$tasks = getGroupsTasks($currentgroup,$project->id);
+$history = getGroupChatHistory($currentgroup,$project->id); //Get Group chat history
 $html = ""; // Initiate blank HTML to create the screen.
 
 //Alert Section - When loading the module, check for any alerts for the user/group
@@ -163,7 +163,7 @@ $html .= "<table border=1 width=80%><tr><td style='vertical-align:top;'><table><
 
 //Display Workload distribution link and possible alert.
 if(count($tasks)>0){
-$workload_alert = AlertWorkloadDistribution($currentgroup);
+$workload_alert = AlertWorkloadDistribution($currentgroup, $project->id);
 $html .= "<br/> <a href='workload_distribution.php?cmid=".$id."&p=".$project->id."' style='a:link{color: #f00;}' >Workload Distribution</a>"; //Display link
 if($workload_alert){
 	$html .= " <img src='pix/alert_icon.png'' width='12px' height='12px'/>"; //If alert is true, lets display an icon for attention

@@ -28,6 +28,7 @@
     <TABLE NAME="project_task" COMMENT="Each record is one task for a project and its config data">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="project_id" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="group_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="name" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="description" TYPE="char" LENGTH="250" NOTNULL="false" SEQUENCE="false"/>

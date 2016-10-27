@@ -66,7 +66,7 @@ echo $OUTPUT->heading(format_string(getGroupName($currentgroup)), 4);
 
 //$html = "<img src='pix\\".$history_summary->method.".png' width='16px' heigh='16px' />  ".userdate($history_summary->date)."<br /><br />";
 
-$member_rank = RankMembersTasksDistribution($currentgroup);
+$member_rank = RankMembersTasksDistribution($currentgroup,$project->id);
 //echo AlertMembersTasksDistribution($member_rank);
 arsort($member_rank); //Order the Rank by number of hours
 
@@ -78,7 +78,7 @@ $equal_hours = $total_hours/count($member_rank);
 $html = "Individual Recommended Hours: ".round($equal_hours,2)." Hours<br /><br />";
 
     //If large variance occurs, display column for table
-    if(AlertWorkloadDistribution($currentgroup))
+    if(AlertWorkloadDistribution($currentgroup,$project->id))
         $html .= "<table style='border:1px solid black;'><tr style='background-color:lightgrey;'><th>Member</th><th>Assigned Hours</th><th>% of Workload</th><th>Variance</th></tr>";
     else
         $html .= "<table style='border:1px solid black;'><tr style='background-color:lightgrey;'><th>Member</th><th>Assigned Hours</th><th>% of Workload</th><th></th></tr>";
