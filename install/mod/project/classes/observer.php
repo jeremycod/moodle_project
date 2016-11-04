@@ -59,35 +59,46 @@ class mod_project_observer {
         ///Finished triggering new event
 
 
-/*
+    }
+    public static function process_course_module_created(\core\event\course_module_created $event){
+        global $CFG;
+        require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+        require_once($CFG->dirroot."/mod/project/projectadminlib.php");
+        $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
+        $log->debug("OBSERVED COURSE MODULE CREATED EVENT: data:".json_encode($event->get_data()));
+        $eventdata=$event->get_data();
+        if($eventdata['other']['modulename']==='project'){
+            $log->debug("CREATED NEW PROJECT");
+            handle_new_project_created_event($event);
+        }
+    }
+    public static function process_course_module_deleted(\core\event\course_module_deleted $event){
+        global $CFG,$DB;
+        require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+        require_once($CFG->dirroot."/mod/project/projectadminlib.php");
+        $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
 
-        $msgcount = $DB->get_record_sql("SELECT count(*) as msgcnt FROM `mdl_chat_messages_current` WHERE system = 0 AND groupid = ?", array($chatuser->groupid))->msgcnt;
-        $mbrcount = $DB->get_record_sql("SELECT count(*) as mbrcnt FROM `mdl_groups_members` WHERE groupid = ?", array($chatuser->groupid))->mbrcnt;
-        if($msgcount > $mbrcount*3){ //check to see if no alert has happened AND theres a little bit of conversation (3 times per # of group members) before analyzing
-            //Added by Jeff Kurcz Apr 20, 2015 to check the last time an alert occurred for a specific user
-            $lastcheck= $DB->get_record_sql("SELECT * FROM {project_groups_check} gc WHERE gc.group_id=? AND gc.courseid=? ORDER BY gc.lastcheck DESC LIMIT 1",array($chatuser->groupid, $COURSE->id));
-         //  $log->debug("LAST CHECK 1:".json_encode($lastcheck));
-            $checktime=$lastcheck->lastcheck+30;
-                $log->debug("LAST CHECK done:".json_encode($lastcheck)." CURRENT TIME:".time()." is it higher than:".$checktime);
-            if(!$lastcheck || time()>($lastcheck->lastcheck+30)){
-                checkChatAlerts($chatuser,$COURSE->id);
-                if(!$lastcheck){
-                    $lastcheckrecord=new stdClass();
-                    $lastcheckrecord->courseid=$COURSE->id;
-                    $lastcheckrecord->group_id=$chatuser->groupid;
-                    $lastcheckrecord->lastcheck=time();
-                    $DB->insert_record('project_groups_check',$lastcheckrecord);
-                }else{
-                    $lastcheck->lastcheck=time();
-                    $DB->update_record('project_groups_check',$lastcheck);
-                }
 
+
+
+
+        $log->debug("OBSERVED COURSE MODULE CREATED DELETED");
+        $eventdata=$event->get_data();
+        if($eventdata['other']['modulename']==='project'){
+            $other=$eventdata["other"];
+            $projectid=$other['instanceid'];
+            if($project_tools=$DB->get_record('project_tools',array('project_id'=>$projectid))){
+                $chat_cm=get_coursemodule_from_instance("chat",$project_tools->chat_id);
+                $DB->delete_records('chat', array('id'=>$chat_cm->instance));
+                $DB->delete_records('course_modules', array('id'=>$chat_cm->id));
+                $forum_cm=get_coursemodule_from_instance("forum",$project_tools->forum_id);
+                $DB->delete_records('forum', array('id'=>$forum_cm->instance));
+                $DB->delete_records('course_modules', array('id'=>$forum_cm->id));
             }
 
-        }//end if
-*/
+            $log->debug("DELETED PROJECT");
+        }
     }
-
 
 
 }

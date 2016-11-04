@@ -13,5 +13,16 @@ $observers = array(
         'eventname' => '\mod_chat\event\message_sent',
         'callback'  => 'mod_project_observer::process_chat_message_event'
 
-    )
+    ),
+    array(
+        'eventname' => '\core\event\course_module_created',
+        'callback'  => 'mod_project_observer::process_course_module_created'
+
+    ),
+    array(
+        'eventname' => '\core\event\course_module_deleted',
+        'callback'  => 'mod_project_observer::process_course_module_deleted'
+
+    ),
+
 );

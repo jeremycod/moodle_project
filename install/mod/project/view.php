@@ -62,6 +62,7 @@ $PAGE->set_activity_record($project);
 $PAGE->requires->jquery();
 $PAGE->requires->jquery_plugin('ui');
 $PAGE->requires->jquery_plugin('ui-css');
+$PAGE->requires->js('/mod/project/js/project.lib.js');
 
 /// Check to see if groups are being used here
 $groupmode = groups_get_activity_groupmode($cm);
@@ -73,11 +74,33 @@ if(isset($_GET['group']) && $isAdmin)
 	
 if($isAdmin && empty($_GET['group']) ){
 	$adminpage = 'Administrators Group Project Selection<br /><br />';
-	$adminpage .= 'Please select the group name of the project you wish to view:<br /><br />';
+
 	$groups = listGroups($course->id);
-	foreach($groups as $group){
-		$adminpage .= "<a href='view.php?id=".$id."&group=".$group->id."'>".$group->name."<br />";
-	}
+    $project_groups=$DB->get_records('project_group_mapping',array('course_id'=>$course->id,'project_id'=>$project->id));
+    $disabled_groups=array();
+    foreach($project_groups as $pg){
+        if($pg->disabled){
+            array_push($disabled_groups,$pg->group_id);
+        }
+    }
+    if(sizeof($groups)==0){
+        $adminpage .= 'Please create some groups in order to use project:<br />';
+
+    }else{
+        $adminpage .= 'Please select the group name of the project you wish to view. To disable this project for specific group unselect check box in front of group name.<br /><br />';
+        foreach($groups as $group){
+            if(in_array($group->id,$disabled_groups)){
+                 $adminpage .= "<input id='group_$group->id' type='checkbox' name='groupinproject' value='.$group->id.' onchange='changeProjectGroup($course->id, $project->id, $group->id, false)'> <a href='view.php?id=".$id."&group=".$group->id."'>".$group->name."<br /></a>";
+            }else{
+                 $adminpage .= "<input  id='group_$group->id' type='checkbox' name='groupinproject' value='.$group->id.'  onchange='changeProjectGroup($course->id, $project->id, $group->id, true)' checked> <a href='view.php?id=".$id."&group=".$group->id."' >".$group->name."<br /></a>";
+            }
+
+
+        }
+    }
+    $adminpage .= "<br /><br /><a href='".$CFG->wwwroot."/group/index.php?id=".$course->id."'>Create groups</a><br />";
+
+
 }
 	
 
@@ -204,22 +227,35 @@ $html .= "<table><tr><td><u>Group Members</u></td><td><u>Last Online</u></td></t
 	$html .= "</table><table><tr><td><u>Communication Tools</u></td></tr>";
     $chatmoduleid=$DB->get_field('modules', 'id', array('name'=> 'chat'));
 
-	if($chat = $DB->get_record('course_modules', array('module'=>$chatmoduleid, 'course'=>$COURSE->id, 'groupmode'=>1), 'id,instance')){
-    if (! $chat = $DB->get_record('chat', array('id'=>$chat->instance))) {
-        print_error('invalidid', 'chat');
+	//if($chat = $DB->get_record('course_modules', array('module'=>$chatmoduleid, 'course'=>$COURSE->id, 'groupmode'=>1), 'id,instance')){
+if($project_tools=$DB->get_record('project_tools',array('project_id'=>$project->id))){
+    if($chat = $DB->get_record('course_modules', array('module'=>$chatmoduleid, 'course'=>$COURSE->id, 'groupmode'=>1, 'instance'=>$project_tools->chat_id))){
+        if (! $chat = $DB->get_record('chat', array('id'=>$chat->instance))) {
+            print_error('invalidid', 'chat');
+        }
+        if (has_capability('mod/chat:chat', $context)) {
+            $params['id'] = $chat->id;
+            $chattarget = new moodle_url("/mod/chat/gui_$CFG->chat_method/index.php", $params);
+            $html .= '<tr><td><img src="../../mod/chat/pix/icon.png" width="16px" height="16px"> ';
+            $html .= $OUTPUT->action_link($chattarget, $chat->name, new popup_action('click', $chattarget, "chat{$course->id}_{$chat->id}{$groupparam}", array('height' => 500, 'width' => 700))); //Create a link with a popout window for the chat.
+            $html .= '</td></tr>';
+
+        }//End if user can chat
+    }//End if chat is setup for course.
+
+    $forummoduleid=$DB->get_field('modules', 'id', array('name'=> 'forum'));
+    if($forum = $DB->get_record('course_modules', array('module'=>$forummoduleid,  'course'=>$COURSE->id, 'groupmode'=>1, 'instance'=>$project_tools->forum_id))){
+      //  foreach($forum as $forum_link){
+            $forum_name = $DB->get_record('forum', array('id'=>$forum->instance), 'name');
+            $html .= ' <tr><td><img src="'.$CFG->wwwroot.'/mod/forum/pix/icon.png" width="16px" height="16px"> <a href="'.$CFG->wwwroot.'\mod\forum\view.php?id='.$forum->id.'">'.$forum_name->name.'</a></td></tr>';
+        //}
+        //$html .= "<br />";
     }
-	if (has_capability('mod/chat:chat', $context)) {
-		$params['id'] = $chat->id;
-		$chattarget = new moodle_url("/mod/chat/gui_$CFG->chat_method/index.php", $params);
-		$html .= '<tr><td><img src="../../mod/chat/pix/icon.png" width="16px" height="16px"> ';
-		$html .= $OUTPUT->action_link($chattarget, $chat->name, new popup_action('click', $chattarget, "chat{$course->id}_{$chat->id}{$groupparam}", array('height' => 500, 'width' => 700))); //Create a link with a popout window for the chat.
-		$html .= '</td></tr>';
-		
-	}//End if user can chat
-}//End if chat is setup for course.
+}
+
 
 //If Forums are setup for Groups, display links to them.
-$html .= displayForums();
+//$html .= displayForums();
 	
 //Display the previous imported communication history
 $html .="</table><table><tr><td><u>Communication History</u><br/>";

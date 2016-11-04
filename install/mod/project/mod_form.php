@@ -54,36 +54,6 @@ class mod_project_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'appearancehdr', get_string('appearance'));
 
-     /*   if ($this->current->instance) {
-            $options = resourcelib_get_displayoptions(explode(',', $config->displayoptions), $this->current->display);
-        } else {
-            $options = resourcelib_get_displayoptions(explode(',', $config->displayoptions));
-        }
-        if (count($options) == 1) {
-            $mform->addElement('hidden', 'display');
-            $mform->setType('display', PARAM_INT);
-            reset($options);
-            $mform->setDefault('display', key($options));
-        } else {
-            $mform->addElement('select', 'display', get_string('displayselect', 'project'), $options);
-            $mform->setDefault('display', $config->display);
-        }
-
-        if (array_key_exists(RESOURCELIB_DISPLAY_POPUP, $options)) {
-            $mform->addElement('text', 'popupwidth', get_string('popupwidth', 'project'), array('size'=>3));
-            if (count($options) > 1) {
-                $mform->disabledIf('popupwidth', 'display', 'noteq', RESOURCELIB_DISPLAY_POPUP);
-            }
-            $mform->setType('popupwidth', PARAM_INT);
-            $mform->setDefault('popupwidth', $config->popupwidth);
-
-            $mform->addElement('text', 'popupheight', get_string('popupheight', 'project'), array('size'=>3));
-            if (count($options) > 1) {
-                $mform->disabledIf('popupheight', 'display', 'noteq', RESOURCELIB_DISPLAY_POPUP);
-            }
-            $mform->setType('popupheight', PARAM_INT);
-            $mform->setDefault('popupheight', $config->popupheight);
-        }*/
 
         $mform->addElement('advcheckbox', 'printintro', get_string('printintro', 'project'));
        // $mform->setDefault('printintro', $config->printintro);
@@ -107,27 +77,6 @@ class mod_project_mod_form extends moodleform_mod {
         $mform->setType('revision', PARAM_INT);
         $mform->setDefault('revision', 1);
     }
-/*
-    function data_preprocessing(&$default_values) {
-        if ($this->current->instance) {
-            $draftitemid = file_get_submitted_draft_itemid('project');
-            $default_values['project']['format'] = $default_values['contentformat'];
-            $default_values['project']['text']   = file_prepare_draft_area($draftitemid, $this->context->id, 'mod_project', 'content', 0, project_get_editor_options($this->context), $default_values['content']);
-            $default_values['project']['itemid'] = $draftitemid;
-        }
-        if (!empty($default_values['displayoptions'])) {
-            $displayoptions = unserialize($default_values['displayoptions']);
-            if (isset($displayoptions['printintro'])) {
-                $default_values['printintro'] = $displayoptions['printintro'];
-            }
-            if (!empty($displayoptions['popupwidth'])) {
-                $default_values['popupwidth'] = $displayoptions['popupwidth'];
-            }
-            if (!empty($displayoptions['popupheight'])) {
-                $default_values['popupheight'] = $displayoptions['popupheight'];
-            }
-        }
-    }
-	*/
+
 }
 

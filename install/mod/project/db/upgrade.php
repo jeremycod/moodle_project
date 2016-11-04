@@ -46,7 +46,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-function xmldb_page_upgrade($oldversion) {
+function xmldb_project_upgrade($oldversion) {
     global $CFG, $DB;
 
     $dbman = $DB->get_manager();
