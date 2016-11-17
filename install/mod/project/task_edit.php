@@ -26,28 +26,37 @@
 require('../../config.php');
 require_once($CFG->dirroot.'/mod/project/edit_form.php');
 require_once($CFG->dirroot.'/mod/project/locallib.php');
+require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+$log=new moodle\local\morph\Logger(array('prefix'=>"project_"));
 //require_once($CFG->libdir.'/completionlib.php');
 
 $cmid       = required_param('cmid', PARAM_INT);  // Project Module ID
 $id      = optional_param('id', 0, PARAM_INT); // Course Module ID
-$taskid        = optional_param('t', 0, PARAM_INT); //Task ID  
+$taskid        = optional_param('t', 0, PARAM_INT); //Task ID
+$currentgroup        = optional_param('group', 0, PARAM_INT); //Task ID
 $d	  = optional_param('d', 0, PARAM_INT);
 
 $cm = get_coursemodule_from_id('project', $cmid, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
 $project = $DB->get_record('project', array('id'=>$cm->instance), '*', MUST_EXIST);
 
+if($currentgroup==0 && $taskid>0){
+    $currentgroup = $DB->get_field('project_task', 'group_id', array('id' => $taskid), MUST_EXIST);
+}
+
+
 require_login($course, false, $cm);
 
-$currentgroup = groups_get_activity_group($cm, true);
+//$currentgroup = groups_get_activity_group($cm, true);
 $members = getGroupMembers($currentgroup);
+$log->debug("GROUP MEMBERS:".json_encode($members)." for group:".$currentgroup);
 $project->currentgroup = $currentgroup;
 
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/project:view', $context);
 
-$PAGE->set_url('/mod/project/task_edit.php', array('cmid' => $cmid));
+$PAGE->set_url('/mod/project/task_edit.php', array('cmid' => $cmid,'group'=>$currentgroup));
 
 $PAGE->set_title($course->shortname.': '.$project->name);
 $PAGE->set_heading($course->fullname);
@@ -69,15 +78,18 @@ $task->cmid = $cm->id;
 
 //$options = array('noclean'=>true, 'subdirs'=>true, 'maxfiles'=>-1, 'maxbytes'=>0, 'context'=>$context);
 
-$mform = new task_edit_form(null, array('task'=>$task, 'project'=>$project, 'members'=>$members));
+$mform = new task_edit_form(null, array('task'=>$task, 'project'=>$project, 'members'=>$members,'currentgroup'=>$currentgroup));
 // If data submitted, then process and store.
+$log->debug("TASK EDIT");
 if ($mform->is_cancelled()) {
+    $log->debug("FORM IS CANCELED");
     if (empty($tasks->id)) {
         redirect("view.php?id=$cm->id");
     } else {
         redirect("view.php?id=$cm->id&taskid=$task->id");
     }
 } else if ($data = $mform->get_data()) {
+    $log->debug("TASK GET DATA");
 	//Create a string off all the members selected seperated by comma's to be stored in the members field.
 	$memberslist = ""; //Create an empty string
 	$num_of_members = count($data->members); //Find the number of members assigned
@@ -93,11 +105,12 @@ if ($mform->is_cancelled()) {
 	}
 	$data->members = $memberslist; //Set new members property to overwrite the array to store.
     $data->project_id=$project->id;
-
+    $log->debug("TASK  DATA:".json_encode($data));
     if ($data->id) {
         // store the files
         $data->timemodified = time();
         //$data = file_postupdate_standard_editor($data, 'content', $options, $context, 'mod_project', 'task', $data->id);
+        $log->debug("UPDATE TASK  DATA:".json_encode($data));
         $DB->update_record('project_task', $data);
         //$DB->set_field('project', 'revision', $project->revision+1, array('id'=>$project->id));
 
@@ -137,7 +150,7 @@ if ($mform->is_cancelled()) {
         $data->importsrc     = '';
         $data->content       = '';          // updated later
         $data->contentformat = FORMAT_HTML; // updated later
-
+        $log->debug("INSERT TASK  DATA:".json_encode($data));
 		$data->id = $DB->insert_record('project_task', $data);
 
         // store the files

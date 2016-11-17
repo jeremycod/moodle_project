@@ -255,12 +255,15 @@ function getGroupMembers($groupid){
  */
 function getStudentName($userid){
 		global $DB;
-		
+
 		$students = array(); //Set new blank array
-		$users = explode(',', $userid); //Exrract the string of users based on comma delimiter
-		for($i=0; $i<count($users); $i++){
-			$student = $DB->get_record('user',array('id'=>$users[$i]), 'username'); //Get the username of the studentid 
-			array_push($students, $student); //Add student name to array
+    		$users = explode(',', $userid); //Exrract the string of users based on comma delimiter
+			for($i=0; $i<count($users); $i++){
+                if($users[$i]>0){
+                    $student = $DB->get_record('user',array('id'=>$users[$i]), 'username'); //Get the username of the studentid
+                    array_push($students, $student); //Add student name to array
+                }
+
 		}
 		
 		return $students;
@@ -574,9 +577,9 @@ function getCurrentGroupProgress($group,$projectid){
 		$hours_complete += $task->hours * ($task->progress/100);
 		$total_hours += $task->hours;
 	}
-
+if($total_hours>0)
 	$group_progress = round($hours_complete/$total_hours*100); //Store rounded hours of the group progress.
-	
+    else $group_progress=0;
 	//Find how many days between the first task and the last task
 	$total_days = ($end - $start)/(60*60*24);
 	//Find how many days into the project a group is
@@ -1366,4 +1369,6 @@ ON t4.userid = t5.userid';
 
 	return;
 }
+
+
 

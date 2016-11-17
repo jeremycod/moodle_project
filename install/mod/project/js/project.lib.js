@@ -3,16 +3,13 @@
  */
 
 function changeProjectGroup(courseid, projectid, groupid, disabled){
-    if(disabled===true){
-        console.log("Disable");
-    }else{
-        console.log("Enable");
-    }
     console.log("GROUP ID:"+groupid);
     if(document.getElementById("group_"+groupid).checked){
         console.log("ELEMENT CHECKED");
+        disabled=false;
     }else{
         console.log("ELEMENT UNCHECKED");
+        disabled=true;
     }
     $.ajax({
         type: "POST",

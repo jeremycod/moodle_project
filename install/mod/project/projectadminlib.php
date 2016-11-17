@@ -14,11 +14,45 @@ function handle_new_project_created_event($event){
     $eventdata=$event->get_data();
     $other=$eventdata["other"];
     $cm=get_coursemodule_from_instance($other["modulename"],$other["instanceid"]);
-    $section=$DB->get_record("course_sections",array('id'=>$cm->section));
+    //$section=$DB->get_record("course_sections",array('id'=>$cm->section));
+
+
+    $coursechanged = true;
+
     $courseid=$eventdata['courseid'];
     $projectname=$other['name'];
     $projectid=$other['instanceid'];
-    $forumname=$projectname." (forum)";
+    $hiddensections=$DB->get_records("course_sections",array('course'=>$courseid,'visible'=>0));
+    if(sizeof($hiddensections)==0){
+        $sections=$DB->get_records("course_sections",array('course'=>$courseid));
+        $latestsectionnum=0;
+        foreach($sections as $sect){
+            if($latestsectionnum<$sect->section){
+                $latestsectionnum=$sect->section;
+            }
+        }
+        $section = new stdClass();
+        $section->course   = $courseid;
+        $section->name= "Project activities";
+        $section->section  = $latestsectionnum+1;
+        $section->visible=0;
+        $section->summary  = '';
+        $section->summaryformat = FORMAT_HTML;
+        $section->sequence = '';
+        $id = $DB->insert_record("course_sections", $section);
+        $coursechanged = true;
+        $courseformat=$DB->get_record("course_format_options",array("courseid"=>$courseid,"name"=>"numsections"));
+        $courseformat->value=$courseformat->value+1;
+        $DB->update_record("course_format_options",$courseformat);
+        if ($coursechanged) {
+            rebuild_course_cache($courseid, true);
+        }
+    }else{
+        $section=array_pop($hiddensections);
+    }
+
+
+
     $log->debug("CREATING PROJECT:".$projectname." in section:".$section->section);
     $forum=create_project_forum($courseid,$projectname,$section->section);
     $chat=create_project_chat($courseid,  $projectname, $section->section);
@@ -64,7 +98,7 @@ function create_project_forum($courseid,  $projectname, $sectionid) {
     $mod = new stdClass();
     $mod->course = $courseid;
     $mod->module = $module->id;
-    $mod->visible=0;
+    $mod->visible=1;
     $mod->indent=1;
     $mod->groupmode=1;
     $mod->instance = $forum->id;
@@ -107,7 +141,7 @@ function create_project_chat($courseid,  $projectname, $sectionid) {
     $mod = new stdClass();
     $mod->course = $courseid;
     $mod->module = $module->id;
-    $mod->visible=0;
+    $mod->visible=1;
     $mod->indent=1;
     $mod->groupmode=1;
     $mod->instance = $chat->id;

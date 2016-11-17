@@ -35,6 +35,7 @@ class task_edit_form extends moodleform {
 		$task = $this->_customdata['task'];
 		$project = $this->_customdata['project'];
 		$members = $this->_customdata['members'];
+        $currentgroup=$this->_customdata['currentgroup'];
 		
         $mform = $this->_form;
 		
@@ -117,6 +118,9 @@ class task_edit_form extends moodleform {
 
         $mform->addElement('hidden', 'project_id', $project->id);
         $mform->setType('project_id', PARAM_INT);
+
+        $mform->addElement('hidden', 'group', $currentgroup);
+        $mform->setType('group', PARAM_INT);
 		
         $mform->addElement('hidden', 'group_id', $project->currentgroup);
         $mform->setType('group_id', PARAM_INT);		

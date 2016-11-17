@@ -73,7 +73,7 @@ class mod_project_observer {
         }
     }
     public static function process_course_module_deleted(\core\event\course_module_deleted $event){
-        global $CFG,$DB;
+        global $CFG,$DB,$PAGE,$COURSE;
         require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
         require_once($CFG->dirroot."/mod/project/projectadminlib.php");
         $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
@@ -95,8 +95,11 @@ class mod_project_observer {
                 $DB->delete_records('forum', array('id'=>$forum_cm->instance));
                 $DB->delete_records('course_modules', array('id'=>$forum_cm->id));
             }
-
-            $log->debug("DELETED PROJECT");
+            $returnurl =new moodle_url('/course/view.php', array('id' => $COURSE->id));
+            $log->debug("DELETED PROJECT. REDIRECTING TO:".$PAGE->url." course:".$COURSE->id." Return url:".$returnurl);
+           // redirect($returnurl);
+           // header('Location: '.$returnurl);
+          //  exit;
         }
     }
 
