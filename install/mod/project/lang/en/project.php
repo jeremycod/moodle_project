@@ -115,5 +115,6 @@ $string['alert-high'] = '<br/>{$a}, We have detected you are quite and active ch
 $string['event_message_sent'] = 'Chat message sent';
 $string['event_projectcoursepageviewed']='Project course page viewed';
 $string['event_history_imported'] = 'History imported';
+$string['event_projecttoolscreated']='Project tools created';
 
 $string['Attachments'] = 'Attachments';
