@@ -47,9 +47,9 @@ class task_edit_form extends moodleform {
 		$mform->addElement('html', 'Please select one of the following predefined tasks, or create one of your own. Hover over the link for the task description.<br /><br />');
 		//List all the predefined tasks
 		foreach($predefined_tasks as $pre_task){
-			$mform->addElement('html', '<a href="?cmid='.$task->cmid.'&pre='.$pre_task->id.'" >'.$pre_task->name.'</a><br />');
+			$mform->addElement('html', '<a href="?cmid='.$task->cmid.'&pre='.$pre_task->id.'&group='.$currentgroup.'" >'.$pre_task->name.'</a><br />');
 			}
-			$mform->addElement('html', '<a href="?cmid='.$task->cmid.'&pre=0" title="Create a Custom Task">Custom Task...</a><br />');
+			$mform->addElement('html', '<a href="?cmid='.$task->cmid.'&pre=0&group='.$currentgroup.'" title="Create a Custom Task">Custom Task...</a><br />');
 		}
 		
 		//Set a task if a predefined task has been selected
@@ -61,7 +61,7 @@ class task_edit_form extends moodleform {
 		/**Task creation form*/
         $mform->addElement('header', 'general', get_string('tasks', 'mod_project'));
 		if(!isset($task->name) && count($predefined_tasks)>0 && !isset($_GET['pre'])){ //If no tasks are selected, and there are predefined tasks, show a message for users to select.
-		$mform->addElement('html', 'Create a new task from scratch or <a href="?cmid='.$task->cmid.'&pre=select" >select one of '.count($predefined_tasks).' predefined tasks</a>.<br /><br />');
+		$mform->addElement('html', 'Create a new task from scratch or <a href="?cmid='.$task->cmid.'&pre=select&group='.$currentgroup.'" >select one of '.count($predefined_tasks).' predefined tasks</a>.<br /><br />');
 		}
 		//$mform->addElement('select', 'predefined', 'Predefined Tasks', $predef_task, $attributes);
 		//$mform->setDefault('predefined', '0');
@@ -133,7 +133,7 @@ class task_edit_form extends moodleform {
         $this->set_data($task);
 
 		if(isset($task->name)){
-			$mform->addElement('html', '<a href=task_edit.php?d=1&id='.$task->id.'&cmid='.$task->cmid.'>Delete Task</a>');
+			$mform->addElement('html', '<a href=task_edit.php?d=1&id='.$task->id.'&cmid='.$task->cmid.'&group='.$currentgroup.'>Delete Task</a>');
 		}
     }
 

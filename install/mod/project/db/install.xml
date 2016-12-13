@@ -30,8 +30,8 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="project_id" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="group_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="description" TYPE="char" LENGTH="250" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description" TYPE="char" LENGTH="500" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="start_date" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="end_date" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
 		<FIELD NAME="members" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false"/>
@@ -94,8 +94,8 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="course_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="description" TYPE="char" LENGTH="250" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description" TYPE="char" LENGTH="500" NOTNULL="false" SEQUENCE="false"/>
 		<FIELD NAME="hours" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
