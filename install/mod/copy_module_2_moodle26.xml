@@ -4,7 +4,7 @@
 
 	<echo message="Pulling in code into Moodle mod directory"/>
 	<property name="workspace_home" location="."/>
-	<property name="apache_home" location="/var/www/html/moodle26dev"/>
+	<property name="apache_home" location="/var/www/html/morph"/>
 	<property name="moodle_mod" location="${apache_home}/mod"/>
 	<property name="moodle_morph" location="${workspace_home}"/>
 

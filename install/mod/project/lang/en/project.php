@@ -24,7 +24,7 @@
  */
 
 $string['modulename'] = 'Project';
-$string['description'] = 'Description';
+$string['description'] = 'Description:';
 $string['task_start_date'] = 'Task Start Date';
 $string['task_end_date'] = 'Task End Date';
 $string['progress'] = 'Progress %';

@@ -173,6 +173,7 @@ class predefined_tasks_edit_form extends moodleform {
         global $CFG, $DB;
 
 		$task = $this->_customdata['task'];
+        $courseid = $this->_customdata['courseid'];
 
         $mform = $this->_form;
 		
@@ -183,9 +184,18 @@ class predefined_tasks_edit_form extends moodleform {
 		$mform->setType('name', PARAM_RAW);
         $mform->addRule('name', null, 'required', null, 'client');
 
-        //$mform->addElement('editor', 'description', get_string('description', 'mod_project'), null);
-		$mform->addElement('textarea', 'description', get_string('description', 'mod_project'), 'wrap="virtual" rows="5" cols="50" maxlength="250"');
+     //   $mform->addElement('text', 'name2', get_string('tasksname', 'mod_project'), array('size'=>'30'));
+
+    //    $mform->setType('name2', PARAM_RAW);
+      //  $mform->addRule('name2', null, 'required', null, 'client');
+       // $mform->addElement('textarea', 'description', get_string('sitedesc', 'hub'),      array('rows' => 8, 'cols' => 41));
+      //  $mform->addElement('textarea', 'description', get_string('description', 'mod_project'), 'rows="5" cols="50" maxlength="250"');
+       // $mform->addElement('textarea', 'description', get_string('description', 'blog'), array('cols' => 50, 'rows' => 7));
+        $mform->addElement('editor', 'description', get_string('description', 'mod_project'), null);
+        //$mform->addElement('textarea', 'description', get_string('prototypesummary','local_morph'), array('rows' => 10), array('rows'=>"5", 'cols'=>"50", 'maxlength'=>"250"));
+		//$mform->addElement('textarea', 'description', get_string('description', 'mod_project'), 'wrap="virtual" rows="5" cols="50" maxlength="250"');
         $mform->setType('description', PARAM_RAW);
+      //  $mform->addRule('description', null, 'required', null, 'client');
 			
 		$mform->addElement('text', 'hours', get_string('hours', 'mod_project'), array('size'=>'2', 'maxlength'=>'4'));
         $mform->setType('hours', PARAM_INT);
@@ -195,8 +205,8 @@ class predefined_tasks_edit_form extends moodleform {
 		$mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
-        $mform->addElement('hidden', 'cmid');
-        $mform->setType('cmid', PARAM_INT);
+        $mform->addElement('hidden', 'course_id', $courseid);
+        $mform->setType('course_id', PARAM_INT);
 
         $this->add_action_buttons(true);
 

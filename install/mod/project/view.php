@@ -51,7 +51,8 @@ require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/project:view', $context);
 
-user_has_role_assignment($USER->id,5); // $roleid == 5 for student role //inside functions declare "global $USER;"
+$student_role_id=$DB->get_field('role','id',array('name'=>'Student'));
+user_has_role_assignment($USER->id,$student_role_id); // $roleid == 5 for student role //inside functions declare "global $USER;"
 //$cContext = context_course::instance($COURSE->id); // global $COURSE
 $isAdmin = has_capability ('moodle/course:update', $context) ? true : false;
 
@@ -129,7 +130,8 @@ if($isAdmin && empty($_GET['group']) ){
 
         }
     }
-    $adminpage .= "<br /><br /><a href='".$CFG->wwwroot."/group/index.php?id=".$course->id."'>Create groups</a><br />";
+    $adminpage .= "<br /><br /><a href='".$CFG->wwwroot."/group/index.php?id=".$course->id."'>Create groups</a>";
+    $adminpage .= "<br /><a href='".$CFG->wwwroot."/mod/project/predefined_tasks.php?id=".$course->id."'>Predefined tasks</a><br />";
 
 
 }else {
