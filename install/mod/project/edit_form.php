@@ -36,6 +36,7 @@ class task_edit_form extends moodleform {
 		$project = $this->_customdata['project'];
 		$members = $this->_customdata['members'];
         $currentgroup=$this->_customdata['currentgroup'];
+
 		
         $mform = $this->_form;
 		
@@ -81,30 +82,32 @@ class task_edit_form extends moodleform {
 		$mform->addElement('date_selector', 'end_date', get_string('task_end_date', 'mod_project'));
 		$mform->setType('end_date', PARAM_RAW);
 		$mform->addRule('end_date', null, 'required', null, 'client');
-		
+
 		$memberslist = array();
 		foreach($members as $member){
 			$memberslist[] =& $mform->createElement('checkbox', $member[0], '', $member[1]);
 		}
-		
-		$mform->addGroup($memberslist, 'members', 'Assigned Members', array(' '), true);
-		//$mform->addRule('members', 'At least one member must be selected', 'required', null, 'client'); //Removed to add it in the validation section.
-		if(!empty($task->members)){
-			$assigned_members = explode(",", $task->members);
-			foreach($members as $member){
-				if(in_array($member[0], $assigned_members)){
-					$mform->setDefault('members['.$member[0].']', true);
-				}
-			}
-		}
-		
-		$mform->addGroupRule('members', 'Please assigned at least one member', 'required', null, 1);
-		
+
+
+                if(!empty($task->members)){
+                    $mform->addGroup($memberslist, 'members', 'Assigned Members', array(' '), true);
+                    $mform->addRule('members', 'At least one member must be selected', 'required', null, 'client'); //Removed to add it in the validation section.
+                    $assigned_members = explode(",", $task->members);
+                    foreach($members as $member){
+                        if(in_array($member[0], $assigned_members)){
+                            $mform->setDefault('members['.$member[0].']', true);
+                        }
+                    }
+                    $mform->addGroupRule('members', 'Please assigned at least one member', 'required', null, 1);
+                }
+
+
+
 		$mform->addElement('text', 'hours', get_string('hours', 'mod_project'), array('size'=>'2', 'maxlength'=>'4'));
         $mform->setType('hours', PARAM_INT);
 		$mform->setDefault('hours', '0');
 		$mform->addRule('hours', null, 'numeric', null, 'client');
-		
+
 		$mform->addElement('text', 'progress', get_string('progress', 'mod_project'), array('size'=>'2', 'maxlength'=>'3'));
         $mform->setType('progress', PARAM_INT);
 		$mform->setDefault('progress', '0');
@@ -123,8 +126,8 @@ class task_edit_form extends moodleform {
         $mform->setType('group', PARAM_INT);
 		
         $mform->addElement('hidden', 'group_id', $project->currentgroup);
-        $mform->setType('group_id', PARAM_INT);		
-		
+        $mform->setType('group_id', PARAM_INT);
+
 
 		$this->method = 'edit';
         $this->add_action_buttons(true);
@@ -184,19 +187,9 @@ class predefined_tasks_edit_form extends moodleform {
 		$mform->setType('name', PARAM_RAW);
         $mform->addRule('name', null, 'required', null, 'client');
 
-     //   $mform->addElement('text', 'name2', get_string('tasksname', 'mod_project'), array('size'=>'30'));
-
-    //    $mform->setType('name2', PARAM_RAW);
-      //  $mform->addRule('name2', null, 'required', null, 'client');
-       // $mform->addElement('textarea', 'description', get_string('sitedesc', 'hub'),      array('rows' => 8, 'cols' => 41));
-      //  $mform->addElement('textarea', 'description', get_string('description', 'mod_project'), 'rows="5" cols="50" maxlength="250"');
-       // $mform->addElement('textarea', 'description', get_string('description', 'blog'), array('cols' => 50, 'rows' => 7));
         $mform->addElement('editor', 'description', get_string('description', 'mod_project'), null);
-        //$mform->addElement('textarea', 'description', get_string('prototypesummary','local_morph'), array('rows' => 10), array('rows'=>"5", 'cols'=>"50", 'maxlength'=>"250"));
-		//$mform->addElement('textarea', 'description', get_string('description', 'mod_project'), 'wrap="virtual" rows="5" cols="50" maxlength="250"');
         $mform->setType('description', PARAM_RAW);
-      //  $mform->addRule('description', null, 'required', null, 'client');
-			
+
 		$mform->addElement('text', 'hours', get_string('hours', 'mod_project'), array('size'=>'2', 'maxlength'=>'4'));
         $mform->setType('hours', PARAM_INT);
 		$mform->setDefault('hours', '0');

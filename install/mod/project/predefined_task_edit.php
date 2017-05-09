@@ -35,16 +35,13 @@ if ($predefined_task_id) {
 $mform = new predefined_tasks_edit_form(null, array('task'=>$predefined_task,'courseid'=>$course->id));
 
 if ($mform->is_cancelled()) {
-    $log->debug("FORM IS CANCELED");
-    if (empty( $predefined_task->id)) {
+     if (empty( $predefined_task->id)) {
         redirect("predefined_tasks.php?id=".$id);
     } else {
         redirect("predefined_tasks.php?id=".$id."&pt=".$predefined_task->id);
     }
 
 }else if ($data = $mform->get_data()) {
-    $log->debug("TASK GET DATA");
-    $log->debug("TASK  DATA:".json_encode($data));
     $datarecord=(object)$data;
     $datarecord->description=$data->description['text'];
     if ($datarecord->id) {
@@ -52,8 +49,7 @@ if ($mform->is_cancelled()) {
         $DB->update_record('project_predefined_tasks', $datarecord);
     }else{
         $data->id = $DB->insert_record('project_predefined_tasks', $datarecord);
-        $log->debug("TASK GET DATA. ID=".json_encode($datarecord));
-    }
+     }
     redirect("predefined_tasks.php?id=".$id);
 }
 

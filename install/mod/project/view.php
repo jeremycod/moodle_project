@@ -57,6 +57,16 @@ user_has_role_assignment($USER->id,$student_role_id); // $roleid == 5 for studen
 $isAdmin = has_capability ('moodle/course:update', $context) ? true : false;
 
 $PAGE->set_url('/mod/project/view.php', array('id' => $cm->id));
+$selector=new project_groups_selector($course->id,$project->id);
+// Process incoming group assignments.
+if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
+    echo "GROUP ASSIGNMENTS";
+    $selector->add_project_groups();
+}
+// Process incoming group unassignments.
+if (optional_param('remove', false, PARAM_BOOL) && confirm_sesskey()) {
+    echo "GROUP UN-ASSIGNMENTS";
+}
 
 $options = empty($project->displayoptions) ? array() : unserialize($project->displayoptions);
 
@@ -110,26 +120,58 @@ if($isAdmin && empty($_GET['group']) ){
     $groups = listGroups($course->id);
     $project_groups=$DB->get_records('project_group_mapping',array('course_id'=>$course->id,'project_id'=>$project->id));
     $disabled_groups=array();
+    $enabled_groups=array();
     foreach($project_groups as $pg){
         if($pg->disabled){
             array_push($disabled_groups,$pg->group_id);
         }
+        if($pg->enabled){
+            array_push($enabled_groups,$pg->group_id);
+        }
     }
-    if(sizeof($groups)==0){
-        $adminpage .= 'Please create some groups in order to use project:<br />';
+   // if(sizeof($groups)==0){
+     //   $adminpage .= 'Please create some groups in order to use project:<br />';
 
-    }else{
+   // }else{
+        /*
         $adminpage .= 'Please select the group name of the project you wish to view. To disable this project for specific group unselect check box in front of group name.<br /><br />';
         foreach($groups as $group){
-            if(in_array($group->id,$disabled_groups)){
-                $adminpage .= "<input id='group_$group->id' type='checkbox' name='groupinproject' value='.$group->id.' onchange='changeProjectGroup($course->id, $project->id, $group->id, false)'> <a href='view.php?id=".$id."&group=".$group->id."'>".$group->name."<br /></a>";
+            if(in_array($group->id,$enabled_groups)){
+                $adminpage .= "<input id='group_$group->id' type='checkbox' name='groupinproject' value='.$group->id.' onchange='changeProjectGroup($course->id, $project->id, $group->id, false)' checked> <a href='view.php?id=".$id."&group=".$group->id."'>".$group->name."<br /></a>";
             }else{
-                $adminpage .= "<input  id='group_$group->id' type='checkbox' name='groupinproject' value='.$group->id.'  onchange='changeProjectGroup($course->id, $project->id, $group->id, true)' checked> <a href='view.php?id=".$id."&group=".$group->id."' >".$group->name."<br /></a>";
+                $adminpage .= "<input  id='group_$group->id' type='checkbox' name='groupinproject' value='.$group->id.'  onchange='changeProjectGroup($course->id, $project->id, $group->id, true)' > <a href='view.php?id=".$id."&group=".$group->id."' >".$group->name."<br /></a>";
             }
 
 
-        }
-    }
+        }*/
+        $formurl=new moodle_url($PAGE->url,array());
+
+
+        $adminpage .=  "<form id='assigngroupstoproject' method='post' action='". $formurl."'>";
+        $adminpage .=  "<input type='hidden' name='sesskey' value='".sesskey()."'/>";
+        $adminpage .=  "<table id='assigngroup' summary='' class='admintable roleassigntable generaltable' cellspacing='0' style='width:100%'";
+        $adminpage .=  "<tr>";
+        $adminpage .=  "<td id='existingcell'  style='width:42%'>";
+        $adminpage .=  "<p><label for='removeselect'>".get_string('extgroups','mod_project')."</label></p>";
+        $adminpage .=  "</td>";
+        $adminpage .=  "<td id='buttoncell'>";
+        $adminpage .=  "<div id='addcontrols' style='margin-top:2em; height:5em'  >";
+        $adminpage .=  "<input name='add' id='add' type='submit' style='width:100%; padding: 0.5em 0; margin: 0.3em 0;text-align: center' value=".$OUTPUT->larrow().'&nbsp;'.get_string('add')." title='".get_string('add')."'/><br/>";
+        $adminpage .=  "</div>";
+        $adminpage .=  "<div id='removecontrols' style='margin-top:2em; height:5em'>";
+        $adminpage .=  "<input name='remove' id='remove' type='submit'  style='width:100%; padding: 0.5em 0; margin: 0.3em 0;text-align: center' value=".$OUTPUT->rarrow().'&nbsp;'.get_string('remove')." title='".get_string('remove')."'/><br/>";
+        $adminpage .=  "</div>";
+        $adminpage .=  "</td>";
+        $adminpage .=  "<td id='potentialcell'   style='width:42%'>";
+        $adminpage .=  "<p><label for='removeselect'>".get_string('potgroups','mod_project')."</label></p>";
+        $adminpage .= $selector->display_potential_groups();
+        $adminpage .=  "</td>";
+        $adminpage .=  "</tr>";
+        $adminpage .=  "</table>";
+        $adminpage .=  "</form>";
+
+   // }
+
     $adminpage .= "<br /><br /><a href='".$CFG->wwwroot."/group/index.php?id=".$course->id."'>Create groups</a>";
     $adminpage .= "<br /><a href='".$CFG->wwwroot."/mod/project/predefined_tasks.php?id=".$course->id."'>Predefined tasks</a><br />";
 

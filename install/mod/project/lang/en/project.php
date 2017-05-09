@@ -118,3 +118,8 @@ $string['event_history_imported'] = 'History imported';
 $string['event_projecttoolscreated']='Project tools created';
 
 $string['Attachments'] = 'Attachments';
+$string['project:addinstance'] ='Add instance';
+$string['project:view'] ='View project';
+
+$string['extgroups'] = 'Project groups';
+$string['potgroups'] = 'Potential groups';

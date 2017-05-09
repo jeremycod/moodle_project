@@ -80,19 +80,22 @@ $task->cmid = $cm->id;
 
 $mform = new task_edit_form(null, array('task'=>$task, 'project'=>$project, 'members'=>$members,'currentgroup'=>$currentgroup));
 // If data submitted, then process and store.
-$log->debug("TASK EDIT");
+
 if ($mform->is_cancelled()) {
-    $log->debug("FORM IS CANCELED");
     if (empty($tasks->id)) {
         redirect("view.php?id=$cm->id");
     } else {
         redirect("view.php?id=$cm->id&taskid=$task->id");
     }
 } else if ($data = $mform->get_data()) {
-    $log->debug("TASK GET DATA");
 	//Create a string off all the members selected seperated by comma's to be stored in the members field.
 	$memberslist = ""; //Create an empty string
-	$num_of_members = count($data->members); //Find the number of members assigned
+    if(!isset($data->members)) {
+        $data->members=[];
+    }
+        $num_of_members = count($data->members); //Find the number of members assigned
+
+
 	$members_position = 1; //Set the first position
 	foreach($data->members as $key => $value){ //Iterate through the array
 		if($members_position < $num_of_members){ //If there are more members to go through add a comma
@@ -105,13 +108,12 @@ if ($mform->is_cancelled()) {
 	}
 	$data->members = $memberslist; //Set new members property to overwrite the array to store.
     $data->project_id=$project->id;
-    $log->debug("TASK  DATA:".json_encode($data));
+
     if ($data->id) {
         // store the files
         $data->timemodified = time();
         //$data = file_postupdate_standard_editor($data, 'content', $options, $context, 'mod_project', 'task', $data->id);
-        $log->debug("UPDATE TASK  DATA:".json_encode($data));
-        $DB->update_record('project_task', $data);
+         $DB->update_record('project_task', $data);
         //$DB->set_field('project', 'revision', $project->revision+1, array('id'=>$project->id));
 
 		//store the files
