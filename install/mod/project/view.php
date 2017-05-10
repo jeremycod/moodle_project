@@ -60,12 +60,11 @@ $PAGE->set_url('/mod/project/view.php', array('id' => $cm->id));
 $selector=new project_groups_selector($course->id,$project->id);
 // Process incoming group assignments.
 if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
-    echo "GROUP ASSIGNMENTS";
     $selector->add_project_groups();
 }
 // Process incoming group unassignments.
 if (optional_param('remove', false, PARAM_BOOL) && confirm_sesskey()) {
-    echo "GROUP UN-ASSIGNMENTS";
+    $selector->remove_project_groups();
 }
 
 $options = empty($project->displayoptions) ? array() : unserialize($project->displayoptions);
@@ -115,7 +114,8 @@ if(isset($_GET['group']) && $isAdmin)
     $currentgroup = $_GET['group'];
 $displaymode = 'NORMAL';
 if($isAdmin && empty($_GET['group']) ){
-    $adminpage = 'Administrators Group Project Selection<br /><br />';
+    $adminpage = '<h2>Administrators Group Project Selection</h2><br /><br />';
+    $adminpage .='Select existing course group to create new group for this project<br/><br/>';
 
     $groups = listGroups($course->id);
     $project_groups=$DB->get_records('project_group_mapping',array('course_id'=>$course->id,'project_id'=>$project->id));
@@ -153,6 +153,7 @@ if($isAdmin && empty($_GET['group']) ){
         $adminpage .=  "<tr>";
         $adminpage .=  "<td id='existingcell'  style='width:42%'>";
         $adminpage .=  "<p><label for='removeselect'>".get_string('extgroups','mod_project')."</label></p>";
+    $adminpage .= $selector->display_project_groups();
         $adminpage .=  "</td>";
         $adminpage .=  "<td id='buttoncell'>";
         $adminpage .=  "<div id='addcontrols' style='margin-top:2em; height:5em'  >";
@@ -165,6 +166,7 @@ if($isAdmin && empty($_GET['group']) ){
         $adminpage .=  "<td id='potentialcell'   style='width:42%'>";
         $adminpage .=  "<p><label for='removeselect'>".get_string('potgroups','mod_project')."</label></p>";
         $adminpage .= $selector->display_potential_groups();
+      $adminpage .= "<br /><br /><a href='".$CFG->wwwroot."/group/index.php?id=".$course->id."'>Manage course groups</a>";
         $adminpage .=  "</td>";
         $adminpage .=  "</tr>";
         $adminpage .=  "</table>";
@@ -172,7 +174,7 @@ if($isAdmin && empty($_GET['group']) ){
 
    // }
 
-    $adminpage .= "<br /><br /><a href='".$CFG->wwwroot."/group/index.php?id=".$course->id."'>Create groups</a>";
+
     $adminpage .= "<br /><a href='".$CFG->wwwroot."/mod/project/predefined_tasks.php?id=".$course->id."'>Predefined tasks</a><br />";
 
 

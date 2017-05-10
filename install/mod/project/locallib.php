@@ -31,6 +31,7 @@ require_once("$CFG->libdir/resourcelib.php");
 require_once("$CFG->dirroot/mod/project/lib.php");
 
 
+
 /**
  * File browsing support class
  */
@@ -59,19 +60,28 @@ class project_groups_selector{
 
     private $courseid;
     private $projectid;
-    private $project_groups;
+    private $project_groups=array();
     private $project_groups_ids=array();
     public function __construct ($courseid, $projectid) {
-        global $DB;
+        global $CFG;
         $this->courseid=$courseid;
         $this->projectid=$projectid;
-        $this->project_groups=$DB->get_records('project_group_mapping',array('course_id'=>$this->courseid,'project_id'=>$this->projectid));
-        foreach($this->project_groups as $project_group){
-           array_push( $this->project_groups_ids,$project_group->group_id);
+        $this->initialize_groups();
+        require_once($CFG->dirroot . '/group/lib.php');
+    }
+    private function initialize_groups(){
+        global $DB;
+       $this->project_groups=array();
+        $this->project_groups_ids=array();
+        $project_groups=$DB->get_records('project_group_mapping',array('course_id'=>$this->courseid,'project_id'=>$this->projectid));
+        foreach($project_groups as $project_group){
+            array_push( $this->project_groups_ids,$project_group->group_id);
+            $group=$DB->get_record('groups',array('id'=>$project_group->group_id));
+            array_push($this->project_groups,$group);
         }
     }
     public function display_potential_groups(){
-        global $DB;
+       // global $DB;
         $groups = listGroups($this->courseid);
 
         $output ="";
@@ -80,10 +90,11 @@ class project_groups_selector{
         $output .= "<select name='addgroups[]' id='addgroups'  multiple='multiple' size='10' >";
         $output .= "  <optgroup label='Potential groups (" . count($groups) . ")'>" . "\n";
         foreach($groups as $group){
-            if(in_array($group->id, $this->project_groups_ids)){
-                echo "<br/>THIS ONE IS IN PROJECT:".$group->id." name:".$group->name;
+            if(!in_array($group->id, $this->project_groups_ids)){
+                //echo "<br/>THIS ONE IS IN PROJECT:".$group->id." name:".$group->name;
+                $output .="<option value=".$group->id.">".$group->name." </option>";
             }
-            $output .="<option value=".$group->id.">".$group->name." </option>";
+
         }
 
         $output .="</select></div>";
@@ -93,28 +104,48 @@ class project_groups_selector{
 
 
     }
-    private function display_group($group){
+    public function display_project_groups(){
         $output="";
 
-    }
-    public function display_project_groups(){
+
+        $output .= "<div class='userselector' id='groupselector_" . $this->projectid . "_wrapper'>";
+        $output .= "<select name='removegroups[]' id='removegroups'  multiple='multiple' size='10' >";
+        $output .= "  <optgroup label='Project groups (" . count($this->project_groups) . ")'>" . "\n";
+        foreach($this->project_groups as $project_group){
+                $output .="<option value=".$project_group->id.">".$project_group->name." </option>";
+        }
+
+        $output .="</select></div>";
+
+
+        return $output;
 
     }
+
     public function add_project_groups(){
         global $DB;
         $groupids = optional_param_array('addgroups', array(), PARAM_INT);
         $project=$DB->get_record("project",array("id"=>$this->projectid));
         foreach($groupids as $groupid){
-            echo "GROUP:".$groupid;
             $this->add_group_to_project($groupid, $project);
         }
+        $this->initialize_groups();
+    }
+    public function remove_project_groups(){
+        global $DB;
+        $groupids = optional_param_array('removegroups', array(), PARAM_INT);
+        $project=$DB->get_record("project",array("id"=>$this->projectid));
+        foreach($groupids as $groupid){
+             $this->remove_group_from_project($groupid, $project);
+        }
+        $this->initialize_groups();
     }
     private function add_group_to_project($parent_groupid,$project){
         global $DB;
         $parentgroup = $DB->get_record('groups', array('id'=>$parent_groupid));
         $projectgroup=new stdClass();
         $projectgroup->courseid=$this->courseid;
-        $projectgroup->name=$parentgroup->name." (".$project->name.")";
+        $projectgroup->name=$parentgroup->name." - ".$project->name;
         $projectgroup->description=$parentgroup->description;
         $projectgroup->descriptionformat=$parentgroup->descriptionformat;
         $groupid=$DB->insert_record('groups', $projectgroup);
@@ -132,6 +163,15 @@ class project_groups_selector{
         // Invalidate the grouping cache for the course
         cache_helper::invalidate_by_definition('core', 'groupdata', array(), array($this->courseid));
 
+
+        //Adding group members
+
+        $members = groups_get_members($parent_groupid);
+        foreach($members as $user){
+           groups_add_member($groupid, $user->id);
+        }
+
+
         // Trigger group event.
         $params = array(
             'context' => context_course::instance($this->courseid),
@@ -143,8 +183,32 @@ class project_groups_selector{
 
 
     }
-    public function remove_project_group(){
+    private function remove_group_from_project($groupid,$project){
+        global $DB;
+        $group = $DB->get_record('groups', array('id'=>$groupid));
+        $DB->delete_records('project_group_mapping', array('group_id'=>$groupid, 'project_id'=>$project->id));
 
+        // Invalidate the grouping cache for the course
+        cache_helper::invalidate_by_definition('core', 'groupdata', array(), array($this->courseid));
+
+        // delete group calendar events
+        $DB->delete_records('event', array('groupid'=>$groupid));
+        //first delete usage in groupings_groups
+        $DB->delete_records('groupings_groups', array('groupid'=>$groupid));
+        //delete members
+        $DB->delete_records('groups_members', array('groupid'=>$groupid));
+
+        $DB->delete_records('groups', array('id'=>$groupid));
+
+        // Trigger group event.
+        $params = array(
+            'context' => context_course::instance($this->courseid),
+            'objectid' => $groupid
+        );
+        $event = \core\event\group_deleted::create($params);
+        $event->add_record_snapshot('groups', $group);
+        $event->trigger();
     }
+
 
 }
