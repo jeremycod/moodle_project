@@ -182,7 +182,7 @@ if($isAdmin && empty($_GET['group']) ){
 
     if (sizeof($groupsinproject) == 0) {
         $displaymode = 'NOPROJECT';
-        $html="This task is not assigned to your group.<br/><br/>";
+        $html="You are currently not assigned to any group in this project. Please contact your instructor.<br/><br/>";
 
     } else if (sizeof($groupsinproject) == 1) {
         //  $currentgroup = groups_get_activity_group($cm, true);
