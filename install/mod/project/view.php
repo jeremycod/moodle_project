@@ -87,9 +87,11 @@ if (sizeof($groupsallowed>1)){
             if(!$projectgroupmapping->disabled){
                 array_push($groupsinproject,$grallowed);
             }
-        }else{
-            array_push($groupsinproject,$grallowed);
         }
+        //else{
+          //  echo "<br/>PUSH 2:".json_encode($grallowed);
+            //array_push($groupsinproject,$grallowed);
+        //}
     }
 }else{
     $grallowed= groups_get_activity_group($cm, true);
