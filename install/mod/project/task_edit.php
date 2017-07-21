@@ -88,6 +88,7 @@ if ($mform->is_cancelled()) {
         redirect("view.php?id=$cm->id&taskid=$task->id");
     }
 } else if ($data = $mform->get_data()) {
+    $log->debug("PROCESSING FORM..");
 	//Create a string off all the members selected seperated by comma's to be stored in the members field.
 	$memberslist = ""; //Create an empty string
     if(!isset($data->members)) {
@@ -110,6 +111,7 @@ if ($mform->is_cancelled()) {
     $data->project_id=$project->id;
 
     if ($data->id) {
+        $log->debug("DATA ID:".$data->id);
         // store the files
         $data->timemodified = time();
         //$data = file_postupdate_standard_editor($data, 'content', $options, $context, 'mod_project', 'task', $data->id);

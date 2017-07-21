@@ -57,6 +57,7 @@ class task_edit_form extends moodleform {
 		if(isset($_GET['pre']) && is_numeric($_GET['pre'])){ //If a predefined task number has been set, set it up as a task to be displayed.
 			$task = $DB->get_record('project_predefined_tasks', array('id'=>$_GET['pre']));
 			$task->cmid = $_GET['cmid'];
+            $task->id=0;
 		}
 		
 		/**Task creation form*/
