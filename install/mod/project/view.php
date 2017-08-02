@@ -88,10 +88,7 @@ if (sizeof($groupsallowed>1)){
                 array_push($groupsinproject,$grallowed);
             }
         }
-        //else{
-          //  echo "<br/>PUSH 2:".json_encode($grallowed);
-            //array_push($groupsinproject,$grallowed);
-        //}
+
     }
 }else{
     $grallowed= groups_get_activity_group($cm, true);
@@ -114,6 +111,8 @@ if (!empty($options['printintro'])) {
 //var_dump($USER);
 if(isset($_GET['group']) && $isAdmin)
     $currentgroup = $_GET['group'];
+
+
 $displaymode = 'NORMAL';
 if($isAdmin && empty($_GET['group']) ){
     $adminpage = '<h2>Administrators Group Project Selection</h2><br /><br />';
@@ -194,7 +193,7 @@ if($isAdmin && empty($_GET['group']) ){
     } else {
         if($selectedgroup>0){
             $currentgroup=$selectedgroup;
-            $displaymode = 'NORMAL';
+              $displaymode = 'NORMAL';
         }else{
             $displaymode = 'MULTIPLE';
 
@@ -354,7 +353,7 @@ $log->debug("TASKS:".json_encode($tasks)." for group:".$currentgroup. " in proje
     foreach ($history as $history_item) { //Iterate through each imported type and display icon, link with time.
         $html .= "<img src='pix/" . $history_item->method . ".png' width='16px' heigh='16px' /> <a href='history_view.php?id=" . $history_item->id . "&p=" . $project->id . "'>" . userdate($history_item->date, get_string('strftimedatetime', 'langconfig')) . "</a> <br />";
     }
-    $html .= "<br/> <a href='history_import.php?cmid=" . $id . "'>+ Import</a>"; //Display a link to import more conversations
+    $html .= "<br/> <a href='history_import.php?cmid=" . $id . "&group=".$currentgroup."'>+ Import</a>"; //Display a link to import more conversations
 
     $html .= "<br /><br />";
 

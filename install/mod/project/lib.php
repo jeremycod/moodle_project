@@ -192,16 +192,6 @@ function getGroupMembersID($groupid){
 	return $DB->get_records('groups_members',array('groupid'=>$groupid),null,'userid');
 }
 
-/**
- * Get Group ID based on userid
- * @param int userid
- * return int groupid
- */
-/*function getGroupID($userid){
-	global $DB;
-	echo "<br/>get group ID for:".$userid;
-	return $DB->get_record('groups_members', array('userid'=>$userid), 'groupid')->groupid;
-}*/
 function getGroupID($userid, $courseid){
 	global $DB;
 	$sql="SELECT gm.groupid

@@ -338,6 +338,7 @@ class history_import_form extends moodleform {
 		
 		$history = $this->_customdata['history'];
 		$project = $this->_customdata['project'];
+        $group=$this->_customdata['group'];
 
         $mform = $this->_form;
 		
@@ -352,6 +353,9 @@ class history_import_form extends moodleform {
 	
         $mform->addElement('hidden', 'cmid');
         $mform->setType('cmid', PARAM_INT);
+
+        $mform->addElement('hidden', 'group',$group);
+        $mform->setType('group', PARAM_INT);
 		
 		$this->add_action_buttons(true);
 

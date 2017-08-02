@@ -91,7 +91,7 @@ class project_groups_selector{
         $output .= "  <optgroup label='Potential groups (" . count($groups) . ")'>" . "\n";
         foreach($groups as $group){
             if(!in_array($group->id, $this->project_groups_ids)){
-                //echo "<br/>THIS ONE IS IN PROJECT:".$group->id." name:".$group->name;
+
                 $output .="<option value=".$group->id.">".$group->name." </option>";
             }
 

@@ -35,6 +35,7 @@ $log->debug("IMPORTING HISTORY CALLED");
 
 $cmid       = required_param('cmid', PARAM_INT);  // Project Module ID
 $mapped = optional_param('mapped', 0, PARAM_RAW);
+$currentgroup=optional_param("group",0,PARAM_INT);
 //$id      = optional_param('id', 0, PARAM_INT); // Course Module ID
 
 $cm = get_coursemodule_from_id('project', $cmid, 0, false, MUST_EXIST);
@@ -42,8 +43,9 @@ $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
 $project = $DB->get_record('project', array('id'=>$cm->instance), '*', MUST_EXIST);
 
 require_login($course, false, $cm);
+$log->debug("IMPORTING HISTORY KT-0:".$currentgroup);
+if($currentgroup==0) $currentgroup = groups_get_activity_group($cm, true);
 
-$currentgroup = groups_get_activity_group($cm, true);
 $members = getGroupMembers($currentgroup);
 $project->currentgroup = $currentgroup;
 
@@ -51,7 +53,7 @@ require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/project:view', $context);
 
-$PAGE->set_url('/mod/project/history_import.php', array('cmid' => $cmid));
+$PAGE->set_url('/mod/project/history_import.php', array('cmid' => $cmid,'group'=>$currentgroup));
 
 $PAGE->set_title($course->shortname.': '.$project->name);
 $PAGE->set_heading($course->fullname);
@@ -62,9 +64,9 @@ $summary = new stdClass();
 $history->id         = null;
 $history->cmid = $cm->id;
 $log->debug("IMPORTING HISTORY KT-1");
-$mform = new history_import_form(null, array('project'=>$project, 'history'=>$history));
+$mform = new history_import_form(null, array('project'=>$project, 'history'=>$history, "group"=>$currentgroup));
 if(isset($_POST['map_users'])){
-    $log->debug("IMPORTING HISTORY KT-2");
+    $log->debug("IMPORTING HISTORY KT-2 FOR GROUP:".$currentgroup);
 	//var_dump($_POST);break;
 	foreach($_POST as $key=>$value){
 		$log->debug("POST:".$key." value:".json_encode($value));
@@ -76,9 +78,9 @@ if(isset($_POST['map_users'])){
                 $log->debug("KT-2.2:".json_encode($student));
                 if (!empty($student->skype)) {
                     //Update the skype field with the skype username
-                    $DB->set_field('project_user_mapping', 'skype', $student->skype, array('user_id' => $student->user_id, 'course_id' => $student->course_id, 'group_id' => $student->group_id));
+                    $DB->set_field('project_user_mapping', 'skype', $student->skype, array('user_id' => $student->user_id, 'course_id' => $student->course_id, 'group_id' => $currentgroup));
                     //update meetings attended to the first one.
-                    $DB->set_field('project_user_mapping', 'meetings_attended', 1, array('user_id' => $student->user_id, 'course_id' => $student->course_id, 'group_id' => $student->group_id));
+                    $DB->set_field('project_user_mapping', 'meetings_attended', 1, array('user_id' => $student->user_id, 'course_id' => $student->course_id, 'group_id' => $currentgroup));
                 }//end if skype name empty
             }
 		}//end if
@@ -97,6 +99,7 @@ if(isset($_POST['map_users'])){
 		// We set relateduserid, because when triggered from the chat daemon, the event userid is null.
 		//'relateduserid' => $chatuser->userid,
 		'other'=>array(
+
 		)
 	);
 	$config = get_config('project');
@@ -105,6 +108,7 @@ if(isset($_POST['map_users'])){
 	$event = $eventclass::create($params);
 	$event->add_morph_other_data('history', $history_records);
 	$event->add_morph_other_data('mapped_users',$mapped_users);
+    $event->add_morph_other_data('group',$currentgroup);
 //$event->add_morph_other_data('messagelength',strlen($message->message));
 	$event->add_morph_other_data('config',$projectconfig);
 	$event->trigger();
@@ -196,7 +200,7 @@ if ($mform->is_cancelled()) {
 		//print_r($history);break;
 		$history->id = $DB->insert_record('project_history_imp_detail', $history);
 			$history_records[]=clone $history;
-			//echo "<br/>ARRAY:".json_encode($history_records);
+
 		}//end for each loop
             $log->debug("IMPORTING HISTORY KT-5.2.4");
             //Remove the SYSTEM user since it will never be assigned.
