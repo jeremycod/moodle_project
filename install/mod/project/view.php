@@ -346,7 +346,7 @@ $log->debug("TASKS:".json_encode($tasks)." for group:".$currentgroup. " in proje
         if ($forum = $DB->get_record('course_modules', array('module' => $forummoduleid, 'course' => $COURSE->id, 'groupmode' => 1, 'instance' => $project_tools->forum_id))) {
             //  foreach($forum as $forum_link){
             $forum_name = $DB->get_record('forum', array('id' => $forum->instance), 'name');
-            $html .= ' <tr><td><img src="' . $CFG->wwwroot . '/mod/forum/pix/icon.png" width="16px" height="16px"> <a href="' . $CFG->wwwroot . '\mod\forum\view.php?id=' . $forum->id . '">' . $forum_name->name . '</a></td></tr>';
+            $html .= ' <tr><td><img src="' . $CFG->wwwroot . '/mod/forum/pix/icon.png" width="16px" height="16px"> <a href="' . $CFG->wwwroot . '\mod\forum\view.php?id=' . $forum->id . '&group='.$currentgroup.'">' . $forum_name->name . '</a></td></tr>';
             //}
             //$html .= "<br />";
         }
