@@ -81,6 +81,7 @@ $PAGE->requires->js('/mod/project/js/project.lib.js');
 $groupmode = groups_get_activity_groupmode($cm);
 $groupsallowed=groups_get_activity_allowed_groups($cm,$USER->id);
 $groupsinproject=array();
+
 if (sizeof($groupsallowed>1)){
     foreach($groupsallowed as $grallowedid=>$grallowed){
         if($projectgroupmapping=$DB->get_record("project_group_mapping",array("course_id"=>$course->id,"project_id"=>$project->id,"group_id"=>$grallowedid))){
@@ -174,8 +175,15 @@ if($isAdmin && empty($_GET['group']) ){
         $adminpage .=  "</form>";
 
    // }
-
-
+    $adminpage .= 'Please select the group name of the project you wish to view. <br /><br />';
+    foreach($project_groups as $gr) {
+        $group=$DB->get_record("groups",array("id"=>$gr->group_id));
+          if(in_array($group->id,$enabled_groups)){
+             $adminpage .= "<a id='group_$group->id'  name='groupinproject' value='.$group->id.' onchange='changeProjectGroup($course->id, $project->id, $group->id, false)' checked> <a href='view.php?id=".$id."&group=".$group->id."'>".$group->name."<br /></a>";
+         }else{
+             $adminpage .= "<a  id='group_$group->id'   name='groupinproject' value='.$group->id.'  onchange='changeProjectGroup($course->id, $project->id, $group->id, true)' > <a href='view.php?id=".$id."&group=".$group->id."' >".$group->name."<br /></a>";
+        }
+    }
     $adminpage .= "<br /><a href='".$CFG->wwwroot."/mod/project/predefined_tasks.php?id=".$course->id."'>Predefined tasks</a><br />";
 
 
