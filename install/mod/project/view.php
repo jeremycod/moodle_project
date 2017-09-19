@@ -328,15 +328,18 @@ $log->debug("TASKS:".json_encode($tasks)." for group:".$currentgroup. " in proje
 
     //if($chat = $DB->get_record('course_modules', array('module'=>$chatmoduleid, 'course'=>$COURSE->id, 'groupmode'=>1), 'id,instance')){
     if ($project_tools = $DB->get_record('project_tools', array('project_id' => $project->id))) {
-        if ($chat = $DB->get_record('course_modules', array('module' => $chatmoduleid, 'course' => $COURSE->id, 'groupmode' => 1, 'instance' => $project_tools->chat_id))) {
-            if (!$chat = $DB->get_record('chat', array('id' => $chat->instance))) {
+        if ($chatcm = $DB->get_record('course_modules', array('module' => $chatmoduleid, 'course' => $COURSE->id, 'groupmode' => 1, 'instance' => $project_tools->chat_id))) {
+            if (!$chat = $DB->get_record('chat', array('id' => $chatcm->instance))) {
                 print_error('invalidid', 'chat');
             }
             if (has_capability('mod/chat:chat', $context)) {
                 $params['id'] = $chat->id;
                 $chattarget = new moodle_url("/mod/chat/gui_$CFG->chat_method/index.php", $params);
                 $html .= '<tr><td><img src="../../mod/chat/pix/icon.png" width="16px" height="16px"> ';
-                $html .= $OUTPUT->action_link($chattarget, $chat->name, new popup_action('click', $chattarget, "chat{$course->id}_{$chat->id}{$groupparam}", array('height' => 500, 'width' => 700))); //Create a link with a popout window for the chat.
+                $link = "<a href='".$CFG->wwwroot."/mod/chat/view.php?id=".$chatcm->id."'>".$chat->name."</a>";
+
+                $html .=$link;
+               // $html .= $OUTPUT->action_link($chattarget, $chat->name, new popup_action('click', $chattarget, "chat{$course->id}_{$chat->id}{$groupparam}", array('height' => 500, 'width' => 700))); //Create a link with a popout window for the chat.
                 $html .= '</td></tr>';
 
             }//End if user can chat

@@ -29,8 +29,6 @@ class mod_project_observer {
         $message=$event->get_record_snapshot('chat_messages',$event->objectid);
         $log->debug("MESSAGE RECORDSNAPSHOT:".json_encode($message));
         $chatuser = $DB->get_record('chat_users', array('chatid'=>$message->chatid, 'userid'=>$USER->id, 'groupid'=>$message->groupid));
-        $log->debug("CHAT USER:".json_encode($chatuser));
-
 
 
         ///Creating customized event here
