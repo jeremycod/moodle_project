@@ -212,3 +212,47 @@ class project_groups_selector{
 
 
 }
+
+function create_project_module_view_event($courseid, $projectid, $groupid,  $userid){
+    global $USER,$CFG;
+    echo "COURSE:".$courseid;
+    require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+    require_once($CFG->dirroot."/mod/project/classes/event/project_module_viewed.php");
+    $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
+    $log->debug("EVENT PROJECT MODULE VIEW FOR COURSE:".$courseid." PROJECT:".$projectid." GROUP:".$groupid." USER:".$userid);
+
+   // $groupid=getGroupID($USER->id, $courseid);
+
+
+    ///Creating customized event here
+    $eventclass='\local_morph\event\project_module_viewed';
+    // $cm = get_coursemodule_from_instance('chat', $chatuser->chatid, $chatuser->course);
+    $params = array(
+        'context' => context_course::instance($courseid),
+        'objectid' => $courseid,
+
+        'other'=>array(
+        )
+    );
+    $config = get_config('project');
+    $log->debug(" CONFIG:".json_encode($config));
+    $projectconfig=json_decode(json_encode($config),true);
+     // $projectconfig=get_object_wars($config);
+     $log->debug("PROJECT CONFIG:".json_encode($projectconfig));
+    $log->debug("SENDING NEW PROJECT MODULE VIEWED EVENT:".json_encode($params));
+    $event = $eventclass::create($params);
+    //$event->add_morph_record_snapshot('chat_messages', $message);
+    // $event->add_morph_other_data('messagelength',strlen($message->message));
+   // $groupid=getGroupID($USER->id, $courseid);
+
+     $event->add_morph_other_data('projectid',$projectid);
+    $event->add_morph_other_data('groupid',$groupid);
+    $event->add_morph_other_data('userid',$userid);
+    $event->add_morph_other_data('config',$projectconfig);
+    $event->trigger();
+    $log->debug("FINISHED TRIGGERING PROJECT MODULE VIEW EVENT");
+    ///Finished triggering new event
+
+    //  checkAlerts($USER->id, getGroupID($USER->id, $courseid));
+    // $this->log->debug("FINISHED CHECKING ALERTS IN PROJECT:".$courseid);
+}

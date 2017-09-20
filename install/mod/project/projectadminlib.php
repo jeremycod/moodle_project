@@ -104,7 +104,7 @@ function create_project_forum($courseid,  $projectname, $sectionid) {
     if (!empty($USER->htmleditor)) {
         $forum->introformat = $USER->htmleditor;
     }
-    $forum->name  = "Discussion forum";
+    $forum->name  = "ACS:Forum";
     $forum->intro = "General discussion on project: ".$projectname;
     $forum->assessed = 0;
     $forum->forcesubscribe = 0;
@@ -159,7 +159,7 @@ function create_project_chat($courseid,  $projectname, $sectionid) {
     if (!empty($USER->htmleditor)) {
         $chat->introformat = $USER->htmleditor;
     }
-    $chat->name  = "Chat";
+    $chat->name  = "ACS:Chat";
     $chat->intro = "General chat on project: ".$projectname;
     $chat->keepdays = 0;
 

@@ -72,6 +72,7 @@ if ($taskid) {
 } else {
     $task = new stdClass();
     $task->id         = null;
+    $task->members="";
 }
 $task->cmid = $cm->id;
 
@@ -88,17 +89,20 @@ if ($mform->is_cancelled()) {
         redirect("view.php?id=$cm->id&taskid=$task->id");
     }
 } else if ($data = $mform->get_data()) {
-    $log->debug("PROCESSING FORM..");
+    $log->debug("PROCESSING FORM..Members:".json_encode($members));
+
 	//Create a string off all the members selected seperated by comma's to be stored in the members field.
 	$memberslist = ""; //Create an empty string
     if(!isset($data->members)) {
         $data->members=[];
+      //  $data->members=$members;
     }
-        $num_of_members = count($data->members); //Find the number of members assigned
+    $num_of_members = count($data->members); //Find the number of members assigned
 
 
-	$members_position = 1; //Set the first position
+	$members_position = 0; //Set the first position
 	foreach($data->members as $key => $value){ //Iterate through the array
+        $log->debug("member:".$key." v:".json_encode($value));
 		if($members_position < $num_of_members){ //If there are more members to go through add a comma
 			$memberslist .= $key.",";
 		}
@@ -107,6 +111,7 @@ if ($mform->is_cancelled()) {
 		}
 		$members_position++;
 	}
+	$log->debug("MEMBERS LIST:".json_encode($memberslist));
 	$data->members = $memberslist; //Set new members property to overwrite the array to store.
     $data->project_id=$project->id;
 

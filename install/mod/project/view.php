@@ -213,6 +213,8 @@ if($isAdmin && empty($_GET['group']) ){
     }
 
 if($displaymode==='NORMAL'){
+    echo "<br/>GROUP:".$currentgroup;
+    create_project_module_view_event($course->id, $project->id, $currentgroup,  $USER->id);
 // url parameters
     $params = array();
     if ($currentgroup) {
@@ -250,7 +252,7 @@ $log->debug("TASKS:".json_encode($tasks)." for group:".$currentgroup. " in proje
     $html .= "<table border=1 width=80%><tr><td style='vertical-align:top;'><table><tr><td><u>List of Tasks</u><br /><br /><a href='task_edit.php?cmid=" . $id . "&group=".$currentgroup."'>+ NEW TASK</a><br /><br />";
     foreach ($tasks as $task) {
         $name = getStudentName($task->members); //Get users assigned to the task
-
+        $log->debug("TASK MEMBERS:".json_encode($task->members));
         //If the task is complete, display a checkmark
         if ($task->progress == 100) {
             $html .= "<img src='pix/Check_mark.png'' width='12px' height='12px' />";
@@ -288,7 +290,7 @@ $log->debug("TASKS:".json_encode($tasks)." for group:".$currentgroup. " in proje
 //Display Workload distribution link and possible alert.
     if (count($tasks) > 0) {
         $workload_alert = AlertWorkloadDistribution($currentgroup, $project->id);
-        $html .= "<br/> <a href='workload_distribution.php?cmid=" . $id . "&p=" . $project->id . "' style='a:link{color: #f00;}' >Workload Distribution</a>"; //Display link
+        $html .= "<br/> <a href='workload_distribution.php?cmid=" . $id . "&p=" . $project->id ."&group=".$currentgroup."' style='a:link{color: #f00;}' >Workload Distribution</a>"; //Display link
         if ($workload_alert) {
             $html .= " <img src='pix/alert_icon.png'' width='12px' height='12px'/>"; //If alert is true, lets display an icon for attention
         }//end if there are alerts
@@ -336,7 +338,7 @@ $log->debug("TASKS:".json_encode($tasks)." for group:".$currentgroup. " in proje
                 $params['id'] = $chat->id;
                 $chattarget = new moodle_url("/mod/chat/gui_$CFG->chat_method/index.php", $params);
                 $html .= '<tr><td><img src="../../mod/chat/pix/icon.png" width="16px" height="16px"> ';
-                $link = "<a href='".$CFG->wwwroot."/mod/chat/view.php?id=".$chatcm->id."'>".$chat->name."</a>";
+                $link = "<a href='".$CFG->wwwroot."/mod/chat/view.php?id=".$chatcm->id."&group=".$currentgroup."'>".$chat->name."</a>";
 
                 $html .=$link;
                // $html .= $OUTPUT->action_link($chattarget, $chat->name, new popup_action('click', $chattarget, "chat{$course->id}_{$chat->id}{$groupparam}", array('height' => 500, 'width' => 700))); //Create a link with a popout window for the chat.

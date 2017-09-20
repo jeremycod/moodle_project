@@ -31,7 +31,7 @@ require_once($CFG->dirroot.'/mod/project/locallib.php');
 
 $cmid      = required_param('cmid', PARAM_INT); // History Module ID
 $p	  = optional_param('p', 0, PARAM_INT); //Project ID
-
+$currentgroup	  = optional_param('group', 0, PARAM_INT);
 if ($p) {
     if (!$project = $DB->get_record('project', array('id'=>$p))) {
         print_error('invalidaccessparameter');
@@ -58,7 +58,7 @@ $options = empty($project->displayoptions) ? array() : unserialize($project->dis
 
 /// Check to see if groups are being used here
 $groupmode = groups_get_activity_groupmode($cm);
-$currentgroup = groups_get_activity_group($cm, true);
+//$currentgroup = groups_get_activity_group($cm, true);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string('Workload Distribution'), 2);
@@ -69,7 +69,6 @@ echo $OUTPUT->heading(format_string(getGroupName($currentgroup)), 4);
 $member_rank = RankMembersTasksDistribution($currentgroup,$project->id);
 //echo AlertMembersTasksDistribution($member_rank);
 arsort($member_rank); //Order the Rank by number of hours
-
 //Get the total number of hours based on each student
 $total_hours = array_sum($member_rank);
 if($total_hours>0){

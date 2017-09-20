@@ -90,7 +90,7 @@ class task_edit_form extends moodleform {
 		}
 
 
-                if(!empty($task->members)){
+                if(!empty($members)){
                     $mform->addGroup($memberslist, 'members', 'Assigned Members', array(' '), true);
                     $mform->addRule('members', 'At least one member must be selected', 'required', null, 'client'); //Removed to add it in the validation section.
                     $assigned_members = explode(",", $task->members);
@@ -346,7 +346,7 @@ class history_import_form extends moodleform {
 		$mform->addElement('textarea', 'history', get_string('history', 'mod_project'), 'wrap="virtual" rows="15" cols="100" maxlength="10000"');
         $mform->setType('history', PARAM_RAW);
 		
-		$mform->addElement('select', 'method', get_string('method', 'mod_project'), array('Skype', 'Email'));
+		$mform->addElement('select', 'method', get_string('method', 'mod_project'), array('Skype'));
 		
 		$mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
@@ -377,6 +377,7 @@ class history_map_users extends moodleform {
 		$convo_members = $this->_customdata['convo_members'];
 		$group_members = $this->_customdata['group_members'];
 		$history_records = $this->_customdata['history_records'];
+        $group = $this->_customdata['group'];
 		
 		$member_count = count($convo_members)-1;
         $mform = $this->_form;
@@ -389,6 +390,10 @@ class history_map_users extends moodleform {
 		$mform->addElement('hidden','history_records');
 		$mform->setType("history_records",PARAM_TEXT);
 		$mform->setDefault('history_records',$history_records);
+
+        $mform->addElement('hidden','group');
+        $mform->setType("group",PARAM_TEXT);
+        $mform->setDefault('group',$group);
 
 		//Return number of Users found
 		$count_convo_members = count($convo_members)-1; //less one for the blank option

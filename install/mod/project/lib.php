@@ -277,7 +277,6 @@ function listGroups($course){
  */
 function getGroupName($groupid){
 	global $DB;
-	
 	return $DB->get_record('groups',array('id'=>$groupid),'name')->name;
 }
 
@@ -471,10 +470,8 @@ function fillUsers($courseid, $currentgroup){
  */
 function RankMembersTasksDistribution($currentgroup,$projectid){
 	global $DB;
-	
 	$groups_members = $DB->get_records('groups_members', array('groupid'=>$currentgroup)); //Get the members of a current group
 	$tasks = $DB->get_records('project_task', array('group_id'=>$currentgroup, 'project_id'=>$projectid), '', 'id,members,hours'); //Get the tasks assigned to a group, return an array of task id, members assigned, and total hours
-
 	//Iterate all members in a group
 	$total_hours = 0;
 	$member_rank = array();

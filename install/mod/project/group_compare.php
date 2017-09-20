@@ -60,7 +60,8 @@ $PAGE->set_activity_record($project);
 $groupmode = groups_get_activity_groupmode($cm);
 $currentgroup = groups_get_activity_group($cm, true);
 
-$groups = $DB->get_records('groups', array('courseid'=>$course->id));
+//$groups = $DB->get_records('groups', array('courseid'=>$course->id));
+$groups=$DB->get_records('project_group_mapping',array('course_id'=>$course->id,'project_id'=>$p));
 $group_members = $DB->get_records('groups_members', array('groupid'=>$currentgroup));
 
 //Display some headers
@@ -74,7 +75,7 @@ $html = "<table><tr><th>Group</th><th>% Complete</th></tr>";
 $group_rank = array();
 foreach($groups as $group){ //Iterate through each group in the course
 	$hours_complete = $total_hours = $start = $end = 0; //Initalize all variables to 0.
-	$tasks = $DB->get_records('project_task', array('group_id'=>$group->id, 'project_id'=>$project->id), '', 'id,name,hours,progress,start_date,end_date');
+	$tasks = $DB->get_records('project_task', array('group_id'=>$group->group_id, 'project_id'=>$project->id), '', 'id,name,hours,progress,start_date,end_date');
 	foreach($tasks as $task){
 		//Find the earliest start time, not set OR new start is sooner
 		if($start==0 || $task->start_date<$start){
@@ -89,11 +90,11 @@ foreach($groups as $group){ //Iterate through each group in the course
 	}
 	//$group_rank[$group->id][0] = $group->name; //Store Group Name
 	if($total_hours==0)
-		$group_rank[$group->id] = 0;
+		$group_rank[$group->group_id] = 0;
 	else
-	$group_rank[$group->id] = round($hours_complete/$total_hours*100); //Store rounded hours of the group progress.
-	$group_start[$group->id] = $start;
-	$group_end[$group->id] = $end;
+	$group_rank[$group->group_id] = round($hours_complete/$total_hours*100); //Store rounded hours of the group progress.
+	$group_start[$group->group_id] = $start;
+	$group_end[$group->group_id] = $end;
 			
 }
 echo "<br />";
