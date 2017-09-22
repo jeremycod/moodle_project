@@ -72,12 +72,15 @@
     </TABLE>
     <TABLE NAME="project_submitted_files" COMMENT="Each record is one file for a submitted file and its config data">
       <FIELDS>
-        <FIELD NAME="field_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="filepath" TYPE="char" LENGTH="500" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="filename" TYPE="char" LENGTH="500" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="time" TYPE="int" LENGTH="11" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="student_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="field_id"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
 	<TABLE NAME="project_feedback" COMMENT="Each record is one comment for a task">

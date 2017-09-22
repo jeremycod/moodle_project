@@ -213,7 +213,6 @@ if($isAdmin && empty($_GET['group']) ){
     }
 
 if($displaymode==='NORMAL'){
-    echo "<br/>GROUP:".$currentgroup;
     create_project_module_view_event($course->id, $project->id, $currentgroup,  $USER->id);
 // url parameters
     $params = array();

@@ -396,6 +396,16 @@ function getUsersComments($task_id) {
 }
 
 /**
+ * @param $task_id
+ */
+function getTaskFiles($task_id){
+    global $DB;
+    return $DB->get_records('project_submitted_files');
+}
+
+
+
+/**
  * Takes an array of students and outputs them as nice text
  * @param array userids
  * return Student names with capitalized names

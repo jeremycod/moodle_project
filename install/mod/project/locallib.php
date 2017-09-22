@@ -215,7 +215,6 @@ class project_groups_selector{
 
 function create_project_module_view_event($courseid, $projectid, $groupid,  $userid){
     global $USER,$CFG;
-    echo "COURSE:".$courseid;
     require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
     require_once($CFG->dirroot."/mod/project/classes/event/project_module_viewed.php");
     $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));

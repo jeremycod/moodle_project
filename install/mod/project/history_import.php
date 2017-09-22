@@ -304,7 +304,10 @@ echo $OUTPUT->heading(format_string('Chat History Import'), 2);
 
 if($mapped){
 $mapped_form->display();
-}else $mform->display();
+}else{
+    $mform->display();
+    echo "<br/>* Importing skype converstation from Skype for Linux is not supported yet. ";
+}
 
 //$strlastmodified = get_string("lastmodified");
 //echo "<div class=\"modified\">$strlastmodified: ".userdate($project->timemodified)."</div>";

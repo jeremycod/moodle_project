@@ -26,12 +26,13 @@ defined('MOODLE_INTERNAL') || die;
  
 require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->dirroot.'/mod/project/lib.php');
+require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
 
 class task_edit_form extends moodleform {
-
+    private $log;
     function definition() {
         global $CFG, $DB;
-
+        $this->log=new moodle\local\morph\Logger(array("prefix"=>"project_task_"));
 		$task = $this->_customdata['task'];
 		$project = $this->_customdata['project'];
 		$members = $this->_customdata['members'];
@@ -86,7 +87,7 @@ class task_edit_form extends moodleform {
 
 		$memberslist = array();
 		foreach($members as $member){
-			$memberslist[] =& $mform->createElement('checkbox', $member[0], '', $member[1]);
+			$memberslist[] =& $mform->createElement('checkbox', $member[0], '', $member[1].'&nbsp;&nbsp;&nbsp;');
 		}
 
 
@@ -122,6 +123,7 @@ class task_edit_form extends moodleform {
 
         $mform->addElement('hidden', 'project_id', $project->id);
         $mform->setType('project_id', PARAM_INT);
+
 
         $mform->addElement('hidden', 'group', $currentgroup);
         $mform->setType('group', PARAM_INT);
@@ -218,11 +220,12 @@ class predefined_tasks_edit_form extends moodleform {
 class task_view_form extends moodleform {
 
     function definition() {
-        global $CFG, $DB;
+        global $CFG, $DB, $COURSE;
 
 		$task = $this->_customdata['task'];
 		$project = $this->_customdata['project'];
 		$members = $this->_customdata['members'];
+        $data=$this->_customdata['data'];
 		//$attachmentoptions = $this->_customdata['attachmentoptions'];
 		
         $mform = $this->_form;
@@ -275,12 +278,38 @@ class task_view_form extends moodleform {
 			$mform->addElement('html', '<br />'.$standing);
 			$mform->setExpanded('status');
 		}
-		
+        $context = context_course::instance($COURSE->id);
 		//TODO: Add File Picker to Tasks
 		$mform->addElement('header', 'files', get_string('files', 'mod_project'));
+        $submitted_files=getTaskFiles($task->id);
+       /* $urlbase = "$CFG->httpswwwroot/file.php";
+        foreach($submitted_files as $submitted_file){
+            $name = getStudentName($submitted_file->student_id);
+            $url = moodle_url::make_file_url($urlbase,  $submitted_file->filepath."/", $submitted_file->filename);
+            $mform->addElement('html', userdate($submitted_file->time, get_string('strftimedatetimeshort', 'langconfig'))." - ".$name[0]->username.": <a href='".$url."'>".$submitted_file->filename."</a><br/>");
+        }*/
 		//$mform->addElement('filepicker', 'userfile', get_string('file'), null, array('accepted_types' => '*'));
 		$mform->setExpanded('files');
-		$mform->addElement('filemanager', 'attachment_filemanager', get_string('Attachments', 'mod_project'), null, array('accepted_types' => '*'));
+		//$mform->addElement('filepicker', 'userfile', get_string('Attachments', 'mod_project'), null, array('accepted_types' => '*'));
+        $fileoptions = array('subdirs'=>0,
+            'maxbytes'=>0,// Site maximum
+
+            'maxfiles'=>-1, // unlimited
+            'accepted_types'=>'*',
+            'return_types'=>2);
+      //  echo "<br/>TASK:".json_encode($task);
+         $context = context_module::instance($task->cmid);
+
+        $data = file_prepare_standard_filemanager($data,
+            'files',
+            $fileoptions,
+            $context,
+            'mod_project',
+            'intro',
+            0);
+        $mform->addElement('filemanager', 'attachments', get_string('attachment', 'forum'), null, $fileoptions);
+        $mform->addHelpButton('attachments', 'attachment', 'forum');
+
         //$mform->addHelpButton('attachment_filemanager', 'attachment', 'project');
 		
 		//Add User Feedback Comments to the tasks.
@@ -313,6 +342,9 @@ class task_view_form extends moodleform {
 
         $mform->addElement('hidden', 'cmid');
         $mform->setType('cmid', PARAM_INT);
+
+        $mform->addElement('hidden', 'task_id', $task->id);
+        $mform->setType('task_id', PARAM_INT);
 		
 		$this->add_action_buttons(true);
 
