@@ -113,6 +113,7 @@ Please try to elaborate more on your thoughts and ideas, generating larger more 
 $string['alert-high'] = '<br/>{$a}, We have detected you are quite and active chatter. As an additional challenge, work on your leadership skills by including those who are less active.<br />';
 
 $string['event_message_sent'] = 'Chat message sent';
+$string['event_forum_post_sent'] = 'Forum post sent';
 $string['event_projectcoursepageviewed']='Project course page viewed';
 $string['event_history_imported'] = 'History imported';
 $string['event_projecttoolscreated']='Project tools created';

@@ -100,6 +100,50 @@ class mod_project_observer {
           //  exit;
         }
     }
+    public static function process_forum_post_event(\mod_forum\event\assessable_uploaded $event){
+        global $CFG, $USER, $COURSE, $DB;
+        require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+       // require_once ($CFG->dirroot . "/local/morph/classes/alerts_controller.php");
+        require_once($CFG->dirroot."/mod/project/lib.php");
+        require_once($CFG->dirroot."/mod/project/classes/event/forum_post_sent.php");
+        require_once($CFG->dirroot."/mod/chat/locallib.php");
+
+        $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
+        $log->debug("RECEIVED FORUM POST EVENT...");
+        $post=$event->get_record_snapshot('forum_posts',$event->objectid);
+        $log->debug("POST:".json_encode($post));
+        $forum_discussion=$DB->get_record("forum_discussions",array("id"=>$post->discussion));
+        $log->debug("GROUP:".$forum_discussion->groupid);
+        $eventclass='\local_morph\event\forum_post_sent';
+
+
+        $eventclass='\local_morph\event\forum_post_sent';
+        $log->debug("DISCUSSION:".$post->discussion." COURSE:".$event->courseid);
+
+        $cm = get_coursemodule_from_instance('forum', $forum_discussion->forum, $forum_discussion->course);
+        $log->debug("CM:".json_encode($cm));
+        $params = array(
+            'context' => context_module::instance($cm->id),
+            'objectid' => $post->id,
+            // We set relateduserid, because when triggered from the chat daemon, the event userid is null.
+            'relateduserid' => $post->userid,
+            'other'=>array(
+            )
+        );
+        $config = get_config('project');
+        $log->debug(" CONFIG:".json_encode($config));
+        $projectconfig=json_decode(json_encode($config),true);
+        // $projectconfig=get_object_wars($config);
+        $log->debug("PROJECT CONFIG:".json_encode($projectconfig));
+        $log->debug("SENDING NEW FORUM POST EVENT:".json_encode($params));
+        $event = $eventclass::create($params);
+        $event->add_morph_record_snapshot('forum_posts', $post);
+        $event->add_morph_other_data("groupid",$forum_discussion->groupid);
+        //$event->add_morph_other_data('messagelength',strlen($message->message));
+        $event->add_morph_other_data('config',$projectconfig);
+        $event->trigger();
+
+    }
 
 
 }

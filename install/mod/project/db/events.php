@@ -15,6 +15,16 @@ $observers = array(
 
     ),
     array(
+        'eventname' => '\mod_forum\event\assessable_uploaded',
+        'callback'  => 'mod_project_observer::process_forum_post_event'
+
+    ),
+    array(
+        'eventname' => '\mod_chat\event\message_sent',
+        'callback'  => 'mod_project_observer::process_forum_post_event'
+
+    ),
+    array(
         'eventname' => '\core\event\course_module_created',
         'callback'  => 'mod_project_observer::process_course_module_created'
 
