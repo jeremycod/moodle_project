@@ -85,11 +85,30 @@ function handle_new_project_created_event($event){
 
 
 }
-function handle_project_deleted_event(){
-    global $CFG;
+function handle_project_deleted_event($event){
+    global $CFG,$DB;
     require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+    require_once($CFG->dirroot."/mod/project/classes/event/project_tools_created.php");
     $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
-
+    $log->debug("HANDLE PROJECT DELETED EVENT");
+    $eventdata=$event->get_data();
+    $projectid=$eventdata['other']['instanceid'];
+    $courseid=$event->courseid;
+    $context = context_course::instance($courseid);
+    $params = array(
+        'context' => $context,
+        'objectid' => $projectid,
+        'courseid' =>$courseid,
+        'other'=> array(
+            'delete'=>true
+        )
+    );
+    $event = \local_morph\event\project_tools_created::create($params);
+    $event->add_morph_other_data('deleted','true');
+    $event->add_morph_other_data('projectid',$projectid);
+    $event->trigger();
+    $DB->delete_records("project_tools",array("project_id"=>$projectid));
+    $DB->delete_records("project_task",array("project_id"=>$projectid));
 }
 function create_project_forum($courseid,  $projectname, $sectionid) {
 // How to set up special 1-per-course forums

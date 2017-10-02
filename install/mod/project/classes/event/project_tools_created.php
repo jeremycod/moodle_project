@@ -8,8 +8,9 @@
 
 namespace local_morph\event;
 defined ('MOODLE_INTERNAL') || die();
-
-class project_tools_created extends \core\event\base {
+global $CFG;
+require_once($CFG->dirroot.'/local/morph/classes/event/morphbase.php');
+class project_tools_created extends \local_morph\event\morphbase  {
     /**
      * Init method.
      *

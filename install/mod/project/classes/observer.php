@@ -75,8 +75,12 @@ class mod_project_observer {
         require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
         require_once($CFG->dirroot."/mod/project/projectadminlib.php");
         $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
-
-
+        $log->debug("OBSERVED COURSE MODULE DELETED EVENT: data:".json_encode($event->get_data()));
+        $eventdata=$event->get_data();
+        if($eventdata['other']['modulename']==='project'){
+            $log->debug("DELETED PROJECT");
+            handle_project_deleted_event($event);
+        }
 
 
 
