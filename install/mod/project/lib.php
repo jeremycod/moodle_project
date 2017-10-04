@@ -292,6 +292,7 @@ function getStudentID($userid){
 		$users = explode(',', $userid);
 		for($i=0; $i<count($users); $i++){
 			//$student = $DB->get_record('user',array('id'=>$users[$i]), 'username');
+            if($users[$i]!=="")
 			array_push($students, $users[$i]);
 		}
 		
@@ -479,18 +480,25 @@ function fillUsers($courseid, $currentgroup){
  * return array of rank members by work allocation
  */
 function RankMembersTasksDistribution($currentgroup,$projectid){
-	global $DB;
+	global $DB,$CFG;
+    require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+    $log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
+    $log->debug("RANK MEMBERS TASK DISTRIBUTION: GROUP:".$currentgroup." PROJECT ID:".$projectid);
 	$groups_members = $DB->get_records('groups_members', array('groupid'=>$currentgroup)); //Get the members of a current group
 	$tasks = $DB->get_records('project_task', array('group_id'=>$currentgroup, 'project_id'=>$projectid), '', 'id,members,hours'); //Get the tasks assigned to a group, return an array of task id, members assigned, and total hours
 	//Iterate all members in a group
+    $log->debug("TASKS:".json_encode($tasks));
 	$total_hours = 0;
 	$member_rank = array();
 	foreach($groups_members as $member){
+	    $log->debug("MEMBER:".json_encode($member));
 		//For every member, find their associated tasks and estimated hours.
 		$hours= 0;
 		foreach($tasks as $task_hours){
+		    $log->debug("TASK HOURS:".json_encode($task_hours));
 			$names = getStudentID($task_hours->members); //Get an array of users in the project group
 			if(in_array($member->userid, $names)){ //If member is in the array of assigned members add hours
+                $log->debug("COUNT NAMES:".count($names)." NAMES:".json_encode($names));
 				if((count($names)>1)) //If there is more than one member assigned, split the workload by all members
 					$hours += $task_hours->hours/count($names);
 				else //Otherwise just assign all hours to assigned member

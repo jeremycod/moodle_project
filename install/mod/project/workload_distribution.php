@@ -26,6 +26,8 @@
 
 require('../../config.php');
 require_once($CFG->dirroot.'/mod/project/locallib.php');
+require_once($CFG->dirroot."/local/morph/classes/logger/Logger.php");
+$log=new moodle\local\morph\Logger(array("prefix"=>'project_'));
 
 //require_once($CFG->libdir.'/completionlib.php');
 
@@ -67,13 +69,15 @@ echo $OUTPUT->heading(format_string(getGroupName($currentgroup)), 4);
 //$html = "<img src='pix\\".$history_summary->method.".png' width='16px' heigh='16px' />  ".userdate($history_summary->date)."<br /><br />";
 
 $member_rank = RankMembersTasksDistribution($currentgroup,$project->id);
+$log->debug("MEMBER RANK:".json_encode($member_rank));
 //echo AlertMembersTasksDistribution($member_rank);
 arsort($member_rank); //Order the Rank by number of hours
 //Get the total number of hours based on each student
 $total_hours = array_sum($member_rank);
+
 if($total_hours>0){
 $equal_hours = $total_hours/count($member_rank);
-
+    $log->debug("TOTAL HOURS:".json_encode($total_hours)." EQUAL HOURS:".json_encode($total_hours));
 $html = "Individual Recommended Hours: ".round($equal_hours,2)." Hours<br /><br />";
 
     //If large variance occurs, display column for table
