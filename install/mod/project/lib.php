@@ -1219,7 +1219,7 @@ function populate_completed_groups_cron(){
 	//Get the users who have a final grade
 	$users_grade = $DB->get_records_sql('SELECT userid,finalgrade FROM {grade_grades} WHERE itemid = :itemid', array('itemid' => $grade_id));
 		if(empty($users_grade)) { //If no grades exist,
-			trace('No grades...exiting...');
+			mtrace('No grades...exiting...');
 			break;
 		}
 		$grades=array();
