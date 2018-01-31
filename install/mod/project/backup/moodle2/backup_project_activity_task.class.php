@@ -1,56 +1,40 @@
 <?php
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
- * Defines backup_project_activity_task class
- *
- * @package     mod_project
- * @category    backup
- * @copyright   2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Created by PhpStorm.
+ * User: zoran
+ * Date: 29/01/18
+ * Time: 4:19 PM
  */
-
-defined('MOODLE_INTERNAL') || die;
-
-require_once($CFG->dirroot . '/mod/project/backup/moodle2/backup_project_stepslib.php');
+require_once($CFG->dirroot . '/mod/project/backup/moodle2/backup_project_stepslib.php'); // Because it exists (must)
+require_once($CFG->dirroot . '/mod/project/backup/moodle2/backup_project_settingslib.php'); // Because it exists (optional)
 
 /**
- * Provides the steps to perform one complete backup of the project instance
+ * choice backup task that provides all the settings and steps to perform one
+ * complete backup of the activity
  */
 class backup_project_activity_task extends backup_activity_task {
 
     /**
-     * No specific settings for this activity
+     * Define (add) particular settings this activity can have
      */
     protected function define_my_settings() {
+        $this->log('define my settings called',backup::LOG_INFO);
+        // No particular settings for this activity
+        //$this->add_step(new backup_project_activity_structure_step('project_structure', 'project.xml'));
     }
 
     /**
-     * Defines a backup step to store the instance data in the project.xml file
+     * Define (add) particular steps this activity can have
      */
     protected function define_my_steps() {
+        // Choice only has one structure step
+       // $this->log('define my steps',backup::LOG_INFO);
         $this->add_step(new backup_project_activity_structure_step('project_structure', 'project.xml'));
     }
 
     /**
-     * Encodes URLs to the index.php and view.php scripts
-     *
-     * @param string $content some HTML text that eventually contains URLs to the activity instance scripts
-     * @return string the content with the URLs encoded
+     * Code the transformations to perform in the activity in
+     * order to get transportable (encoded) links
      */
     static public function encode_content_links($content) {
         global $CFG;
