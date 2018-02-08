@@ -18,7 +18,7 @@ class backup_project_activity_task extends backup_activity_task {
      * Define (add) particular settings this activity can have
      */
     protected function define_my_settings() {
-        $this->log('define my settings called',backup::LOG_INFO);
+
         // No particular settings for this activity
         //$this->add_step(new backup_project_activity_structure_step('project_structure', 'project.xml'));
     }

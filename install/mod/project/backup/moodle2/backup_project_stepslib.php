@@ -13,6 +13,7 @@
  */
 class backup_project_activity_structure_step extends backup_activity_structure_step {
 
+
     protected function define_structure() {
 
          $this->log('define structure for project',backup::LOG_INFO);
@@ -55,6 +56,18 @@ class backup_project_activity_structure_step extends backup_activity_structure_s
           array(backup::VAR_PARENTID)
           );
 
+          $users_mapping=new backup_nested_element('users_mapping');
+
+          $user_mapping=new backup_nested_element('project_user_mapping',array('id'),array('course_id','group_id','user_id', 'skype','email','meetings_attended','meetings_total','meetings_alert','cohort_alert','forum_alert','import_alert'));
+          $project->add_child($users_mapping);
+          $users_mapping->add_child($user_mapping);
+
+          $user_mapping->set_source_sql('SELECT *
+          FROM {project_user_mapping}
+          WHERE course_id=?',
+              array(backup::VAR_COURSEID)
+          );
+
           //Conversation history
           $history=new backup_nested_element('history');
           $history_summary=new backup_nested_element('project_history_imp_summary',array('id'),array('project_id','group_id','date','method'));
@@ -88,6 +101,7 @@ class backup_project_activity_structure_step extends backup_activity_structure_s
             WHERE project_id=?',
               array(backup::VAR_PARENTID)
           );
+
          //
 
           //Task feedback
@@ -96,6 +110,7 @@ class backup_project_activity_structure_step extends backup_activity_structure_s
               'time',"task_id","student_id","comment"));
           $task->add_child($feedbacks);
           $feedbacks->add_child($feedback);
+
           // $project->set_source_table('project', array('id' => backup::VAR_ACTIVITYID));
 
 
@@ -108,9 +123,7 @@ class backup_project_activity_structure_step extends backup_activity_structure_s
               array(backup::VAR_PARENTID)
           );
 
-          $task->annotate_files('mod_project',
-              'attachment',
-              'id');
+          $task->annotate_files('mod_project', 'attachment', 'id');
 
         }
 
@@ -119,6 +132,7 @@ class backup_project_activity_structure_step extends backup_activity_structure_s
         // Define file annotations
 
         // Return the root element (choice), wrapped into standard activity structure
-return $project;
+//return $project;
+        return $this->prepare_activity_structure($project);
     }
 }
